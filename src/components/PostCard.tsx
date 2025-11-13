@@ -83,7 +83,7 @@ export const PostCard = ({ author, avatar, timeAgo, content, images, likes, comm
       <CardContent className="pb-3">
         <p className="text-sm text-foreground whitespace-pre-wrap">{content}</p>
         {images && images.length > 0 && (
-          <div className={`mt-3 rounded-lg overflow-hidden ${images.filter(m => m.type !== 'audio').length === 1 ? '' : 'grid grid-cols-2 gap-1'}`}>
+          <div className={`mt-3 rounded-lg overflow-hidden relative ${images.filter(m => m.type !== 'audio').length === 1 ? '' : 'grid grid-cols-2 gap-1'}`}>
             {images.filter(media => media.type !== 'audio').map((media, index) => (
               <div key={index}>
                 {media.type === 'video' ? (
@@ -101,6 +101,22 @@ export const PostCard = ({ author, avatar, timeAgo, content, images, likes, comm
                 )}
               </div>
             ))}
+            
+            {/* Audio control button overlay like YouTube */}
+            {hasAudio && (
+              <Button
+                variant="secondary"
+                size="icon"
+                className="absolute bottom-3 right-3 h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-lg"
+                onClick={toggleAudio}
+              >
+                {isPlaying ? (
+                  <Volume2 className="h-5 w-5 text-foreground" />
+                ) : (
+                  <VolumeX className="h-5 w-5 text-muted-foreground" />
+                )}
+              </Button>
+            )}
           </div>
         )}
       </CardContent>
@@ -125,21 +141,6 @@ export const PostCard = ({ author, avatar, timeAgo, content, images, likes, comm
             <MessageCircle className="h-4 w-4" />
             <span className="text-sm">{comments}</span>
           </Button>
-          {hasAudio && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2 text-muted-foreground hover:text-primary"
-              onClick={toggleAudio}
-            >
-              {isPlaying ? (
-                <Volume2 className="h-4 w-4 text-primary" />
-              ) : (
-                <VolumeX className="h-4 w-4" />
-              )}
-              <span className="text-sm">{isPlaying ? "Đang phát" : "Âm thanh"}</span>
-            </Button>
-          )}
         </div>
         <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={handleShare}>
           <Share2 className="h-4 w-4" />
