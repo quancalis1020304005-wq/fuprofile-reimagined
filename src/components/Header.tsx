@@ -26,7 +26,17 @@ export const Header = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Listen for profile updates
+    const handleProfileUpdate = () => {
+      loadUserProfile();
+    };
+    
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
   }, []);
 
   const loadUserProfile = async () => {
