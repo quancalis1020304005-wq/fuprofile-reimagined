@@ -37,9 +37,9 @@ export const PostCard = ({ author, avatar, timeAgo, content, image, likes, comme
     <Card className="border-border">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
+          <Avatar className="h-10 w-10 ring-2 ring-primary/10">
             <AvatarImage src={avatar} alt={author} />
-            <AvatarFallback className="bg-primary text-primary-foreground">
+            <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground">
               {author.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>

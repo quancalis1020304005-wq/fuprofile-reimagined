@@ -41,8 +41,8 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className="hover:bg-sidebar-accent rounded-lg px-3 py-2.5"
-                      activeClassName="bg-primary hover:bg-primary text-white font-medium"
+                      className="hover:bg-sidebar-accent rounded-lg px-3 py-2.5 transition-all"
+                      activeClassName="bg-gradient-to-r from-primary to-accent hover:from-primary hover:to-accent text-primary-foreground font-medium shadow-md shadow-primary/20"
                     >
                       <item.icon className="h-5 w-5 flex-shrink-0" />
                       {!collapsed && <span className="ml-3">{item.title}</span>}

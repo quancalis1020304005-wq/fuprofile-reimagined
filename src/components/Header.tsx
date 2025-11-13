@@ -10,7 +10,7 @@ export const Header = () => {
     <header className="h-14 border-b border-border bg-card sticky top-0 z-50 px-4">
       <div className="flex items-center justify-between h-full max-w-[1800px] mx-auto">
         {/* Logo */}
-        <NavLink to="/feed" className="text-primary font-bold text-xl flex-shrink-0">
+        <NavLink to="/feed" className="text-primary font-bold text-xl flex-shrink-0 hover:text-accent transition-colors">
           F.U.Profile
         </NavLink>
 
@@ -59,8 +59,8 @@ export const Header = () => {
             <Bell className="h-5 w-5" />
           </Button>
 
-          <Avatar className="h-9 w-9 cursor-pointer bg-primary">
-            <AvatarFallback className="bg-primary text-primary-foreground font-medium">
+          <Avatar className="h-9 w-9 cursor-pointer bg-gradient-to-br from-primary to-accent ring-2 ring-primary/20">
+            <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-medium">
               Q
             </AvatarFallback>
           </Avatar>

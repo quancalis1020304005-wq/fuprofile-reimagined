@@ -37,7 +37,7 @@ export const CreatePost = () => {
               <span>Video</span>
             </Button>
           </div>
-          <Button onClick={handlePost} className="bg-primary hover:bg-accent px-6">
+          <Button onClick={handlePost} className="bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary text-primary-foreground px-6 shadow-md shadow-primary/30 transition-all">
             Đăng
           </Button>
         </div>
