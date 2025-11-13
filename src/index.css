@@ -43,16 +43,19 @@ All colors MUST be HSL.
     --success-foreground: 0 0% 100%;
     --warning: 45 93% 47%;
     --warning-foreground: 0 0% 100%;
+    --info: 142 76% 36%;
+    --info-foreground: 0 0% 100%;
     --chart-1: 217 91% 60%;
     --chart-2: 43 96% 56%;
-    --chart-3: 45 93% 47%;
+    --chart-3: 142 76% 36%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 82% 52%;
     
-    /* Premium gradients with royal gold */
-    --gradient-premium: linear-gradient(135deg, hsl(43 96% 56% / 0.15), hsl(38 92% 50% / 0.1));
+    /* Premium gradients with royal gold and emerald green */
+    --gradient-premium: linear-gradient(135deg, hsl(43 96% 56% / 0.15), hsl(142 76% 36% / 0.1));
     --gradient-success: linear-gradient(135deg, hsl(142 76% 36% / 0.2), hsl(142 76% 50% / 0.1));
     --gradient-gold: linear-gradient(135deg, hsl(43 96% 56% / 0.25), hsl(45 93% 60% / 0.15));
+    --gradient-emerald: linear-gradient(135deg, hsl(142 76% 36% / 0.2), hsl(142 76% 50% / 0.15));
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 30 10% 26%;
@@ -98,16 +101,19 @@ All colors MUST be HSL.
     --success-foreground: 0 0% 100%;
     --warning: 45 93% 50%;
     --warning-foreground: 0 0% 100%;
+    --info: 142 76% 40%;
+    --info-foreground: 0 0% 100%;
     --chart-1: 217 91% 65%;
     --chart-2: 43 96% 60%;
-    --chart-3: 45 93% 50%;
+    --chart-3: 142 76% 40%;
     --chart-4: 280 65% 65%;
     --chart-5: 340 82% 57%;
     
-    /* Premium gradients with royal gold - dark mode */
-    --gradient-premium: linear-gradient(135deg, hsl(43 96% 60% / 0.2), hsl(38 92% 55% / 0.15));
+    /* Premium gradients with royal gold and emerald green - dark mode */
+    --gradient-premium: linear-gradient(135deg, hsl(43 96% 60% / 0.2), hsl(142 76% 40% / 0.15));
     --gradient-success: linear-gradient(135deg, hsl(142 76% 40% / 0.25), hsl(142 76% 50% / 0.15));
     --gradient-gold: linear-gradient(135deg, hsl(43 96% 60% / 0.3), hsl(45 93% 65% / 0.2));
+    --gradient-emerald: linear-gradient(135deg, hsl(142 76% 40% / 0.3), hsl(142 76% 50% / 0.2));
     
     --sidebar-background: 30 25% 10%;
     --sidebar-foreground: 45 10% 90%;

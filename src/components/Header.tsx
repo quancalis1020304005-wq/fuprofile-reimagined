@@ -50,7 +50,7 @@ export const Header = () => {
 
           <Button variant="ghost" size="icon" className="h-10 w-10 relative">
             <MessageCircle className="h-5 w-5" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-primary text-[10px]">
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-success text-success-foreground text-[10px]">
               3
             </Badge>
           </Button>
