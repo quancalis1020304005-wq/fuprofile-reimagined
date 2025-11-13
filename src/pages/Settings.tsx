@@ -117,6 +117,10 @@ const Settings = () => {
       }
 
       setProfile({ ...profile, avatar: avatarUrl });
+      
+      // Broadcast event to update header
+      window.dispatchEvent(new CustomEvent('profileUpdated'));
+      
       toast.success("Đã lưu thay đổi!");
     } catch (error) {
       toast.error("Có lỗi xảy ra");
