@@ -1,5 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Settings as SettingsIcon, Upload, User, Bell, Shield, UserCog, Camera } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,16 +13,52 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 const Settings = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({
-    fullName: "Lê Minh Quân",
-    username: "Angel Quân",
-    email: "quancalis1020304005@gmail.com",
-    bio: "Viết vài dòng về bản thân...",
+    fullName: "",
+    username: "",
+    email: "",
+    bio: "",
     avatar: ""
   });
 
   const [avatarPreview, setAvatarPreview] = useState<string>("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
+    // Load profile data
+    const { data: profileData, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (profileData) {
+      setProfile({
+        fullName: profileData.full_name || "",
+        username: profileData.username || "",
+        email: user.email || "",
+        bio: profileData.bio || "",
+        avatar: profileData.avatar_url || ""
+      });
+      setAvatarPreview(profileData.avatar_url || "");
+    }
+    
+    setLoading(false);
+  };
 
   const [notifications, setNotifications] = useState({
     posts: true,
@@ -30,11 +68,59 @@ const Settings = () => {
     friendRequests: true
   });
 
-  const handleSaveProfile = () => {
-    if (avatarPreview) {
-      setProfile({ ...profile, avatar: avatarPreview });
+  const handleSaveProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("Vui lòng đăng nhập");
+        return;
+      }
+
+      let avatarUrl = profile.avatar;
+
+      // Upload avatar if there's a new file
+      if (avatarFile) {
+        const fileExt = avatarFile.name.split('.').pop();
+        const fileName = `${user.id}/${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, avatarFile, { upsert: true });
+
+        if (uploadError) {
+          toast.error("Lỗi khi tải ảnh lên");
+          return;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(fileName);
+
+        avatarUrl = publicUrl;
+      }
+
+      // Update profile in database
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profile.fullName,
+          username: profile.username,
+          bio: profile.bio,
+          avatar_url: avatarUrl
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        toast.error("Lỗi khi lưu thông tin");
+        return;
+      }
+
+      setProfile({ ...profile, avatar: avatarUrl });
+      toast.success("Đã lưu thay đổi!");
+    } catch (error) {
+      toast.error("Có lỗi xảy ra");
     }
-    toast.success("Đã lưu thay đổi!");
   };
 
   const handleUploadAvatar = () => {
@@ -54,6 +140,7 @@ const Settings = () => {
         return;
       }
 
+      setAvatarFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result as string);
@@ -62,6 +149,14 @@ const Settings = () => {
       reader.readAsDataURL(file);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Đang tải...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

@@ -12,6 +12,7 @@ import Marketplace from "./pages/Marketplace";
 import Wallet from "./pages/Wallet";
 import GamePlay from "./pages/GamePlay";
 import Settings from "./pages/Settings";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/wallet" element={<Layout><Wallet /></Layout>} />
           <Route path="/gameplay" element={<Layout><GamePlay /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
+          <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
