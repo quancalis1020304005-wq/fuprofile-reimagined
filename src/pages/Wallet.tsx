@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, RefreshCw, TrendingUp, TrendingDown, History, Settings, Eye, EyeOff, ArrowLeftRight, DollarSign, BarChart3 } from "lucide-react";
+import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, RefreshCw, TrendingUp, TrendingDown, History, Settings, Eye, EyeOff, ArrowLeftRight, DollarSign, BarChart3, Send, ArrowDownToLine, Sparkles } from "lucide-react";
 import WalletConnect from "@walletconnect/client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
 import { ethers } from "ethers";
@@ -32,13 +32,34 @@ const Wallet = () => {
   const [registerConfirmCode, setRegisterConfirmCode] = useState("");
   const [hideBalance, setHideBalance] = useState(false);
   
-  // Mock tokens data
-  const [tokens] = useState([
-    { symbol: "ETH", name: "Ethereum", balance: 2.5, price: 2340.50, change: 2.5, icon: "🔷" },
-    { symbol: "BTC", name: "Bitcoin", balance: 0.15, price: 43200.00, change: -1.2, icon: "🟠" },
-    { symbol: "USDT", name: "Tether", balance: 5000, price: 1.00, change: 0.0, icon: "💚" },
-    { symbol: "BNB", name: "BNB", balance: 8.3, price: 312.45, change: 3.8, icon: "🟡" },
+  // Mock tokens data with auto-update
+  const [tokens, setTokens] = useState([
+    { symbol: "ETH", name: "Ethereum", balance: 2.5, price: 2340.50, change: 2.5, icon: "⟠", color: "from-chart-1 to-chart-4" },
+    { symbol: "BTC", name: "Bitcoin", balance: 0.15, price: 43200.00, change: -1.2, icon: "₿", color: "from-warning to-chart-3" },
+    { symbol: "USDT", name: "Tether", balance: 5000, price: 1.00, change: 0.0, icon: "₮", color: "from-success to-chart-2" },
+    { symbol: "BNB", name: "BNB", balance: 8.3, price: 312.45, change: 3.8, icon: "◆", color: "from-chart-3 to-warning" },
   ]);
+  
+  // Auto-refresh prices every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTokens(prevTokens => 
+        prevTokens.map(token => {
+          const priceChange = (Math.random() - 0.5) * (token.price * 0.02);
+          const newPrice = Math.max(0, token.price + priceChange);
+          const changePercent = ((newPrice - token.price) / token.price) * 100;
+          
+          return {
+            ...token,
+            price: Number(newPrice.toFixed(2)),
+            change: Number((token.change + changePercent).toFixed(2))
+          };
+        })
+      );
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const getNetworkName = (chainId: number): string => {
     const networks: { [key: number]: string } = {
@@ -300,22 +321,22 @@ const Wallet = () => {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-background via-card to-muted/20 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
-          <Card className="text-center p-8 shadow-xl border-2 animate-fade-in">
+          <Card className="text-center p-8 shadow-2xl border-2 backdrop-blur-sm bg-card/95 animate-fade-in">
             <div className="flex justify-center mb-6">
-              <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-                <WalletIcon className="h-12 w-12 text-primary-foreground" />
+              <div className="h-24 w-24 rounded-full bg-gradient-to-br from-chart-1 via-chart-4 to-warning flex items-center justify-center shadow-lg animate-pulse">
+                <Sparkles className="h-12 w-12 text-white" />
               </div>
             </div>
-            <CardTitle className="mb-3 text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <CardTitle className="mb-3 text-4xl font-bold bg-gradient-to-r from-chart-1 via-chart-4 to-warning bg-clip-text text-transparent">
               BiggetWallet
             </CardTitle>
-            <p className="text-muted-foreground mb-8">Kết nối ví để quản lý tài sản crypto của bạn</p>
+            <p className="text-muted-foreground mb-8 text-lg">Nền tảng giao dịch tiền điện tử hàng đầu</p>
             <div className="space-y-4">
               <Button
                 onClick={handleConnectWallet}
-                className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 gap-2 h-12 text-base font-semibold shadow-lg"
+                className="w-full bg-gradient-to-r from-chart-1 to-chart-4 hover:from-chart-1/90 hover:to-chart-4/90 gap-2 h-12 text-base font-semibold shadow-xl"
               >
                 <WalletIcon className="h-5 w-5" />
                 Kết nối WalletConnect
@@ -333,7 +354,7 @@ const Wallet = () => {
               <div className="grid grid-cols-2 gap-3">
                 <Dialog open={showRegister} onOpenChange={setShowRegister}>
                   <DialogTrigger asChild>
-                    <Button className="w-full gap-2 h-12 bg-gradient-to-r from-accent to-primary hover:opacity-90">
+                    <Button className="w-full gap-2 h-12 bg-gradient-to-r from-chart-1 to-chart-4 hover:from-chart-1/90 hover:to-chart-4/90">
                       <WalletIcon className="h-5 w-5" />
                       Đăng ký
                     </Button>
@@ -416,7 +437,7 @@ const Wallet = () => {
 
                 <Dialog open={showQuickLogin} onOpenChange={setShowQuickLogin}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" className="w-full gap-2 h-12 border-2 hover:border-primary hover:bg-primary/5">
+                    <Button variant="outline" className="w-full gap-2 h-12 border-2 border-chart-1/50 hover:border-chart-1 hover:bg-chart-1/10">
                       <DollarSign className="h-5 w-5" />
                       Đăng nhập
                     </Button>
@@ -504,88 +525,103 @@ const Wallet = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-              <WalletIcon className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">BiggetWallet</h1>
-              <p className="text-sm text-muted-foreground">Quản lý tài sản crypto</p>
-            </div>
-          </div>
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Settings className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Portfolio Card */}
-        <Card className="shadow-xl border-2 animate-fade-in">
-          <CardContent className="pt-6">
-            {/* Wallet Address */}
-            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg mb-4">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <WalletIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <p className="text-sm text-muted-foreground truncate font-mono">{walletAddress}</p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-card to-muted/20">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* Premium Header */}
+        <Card className="shadow-2xl border-2 backdrop-blur-sm bg-gradient-to-br from-card via-card to-muted/30 overflow-hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-chart-1/5 via-chart-4/5 to-warning/5 opacity-50"></div>
+          <CardContent className="pt-6 relative">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-chart-1 via-chart-4 to-warning rounded-2xl flex items-center justify-center shadow-lg">
+                  <Sparkles className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-chart-1 to-chart-4 bg-clip-text text-transparent">BiggetWallet Premium</h1>
+                  <div className="flex items-center gap-2 mt-1">
+                    <code className="text-sm bg-muted/80 backdrop-blur px-3 py-1.5 rounded-lg border border-border/50 font-mono">
+                      {walletAddress.slice(0, 8)}...{walletAddress.slice(-6)}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 hover:bg-chart-1/20"
+                      onClick={handleCopyAddress}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    {networkName && (
+                      <Badge variant="secondary" className="bg-success/20 text-success border-success/30">
+                        {networkName}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={handleCopyAddress}
-                className="flex-shrink-0"
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="icon" className="hover:bg-chart-1/20 rounded-full">
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
+          </CardContent>
+        </Card>
 
+        {/* Premium Portfolio Card */}
+        <Card className="shadow-2xl border-2 backdrop-blur-sm bg-gradient-to-br from-card via-success/5 to-card overflow-hidden relative animate-fade-in">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMwMDAiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItaDJWMzZoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
+          <CardContent className="pt-6 relative">
             {/* Total Balance */}
             <div className="text-center space-y-3 mb-6">
               <div className="flex items-center justify-center gap-2">
-                <p className="text-sm text-muted-foreground">Tổng tài sản</p>
+                <DollarSign className="h-5 w-5 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground font-medium">Tổng tài sản ước tính</p>
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-6 w-6"
+                  className="h-8 w-8 hover:bg-success/20"
                   onClick={() => setHideBalance(!hideBalance)}
                 >
-                  {hideBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {hideBalance ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </Button>
-                {networkName && (
-                  <Badge variant="secondary" className="text-xs">
-                    {networkName}
-                  </Badge>
-                )}
               </div>
               <div className="flex items-center justify-center gap-3">
-                <p className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  {hideBalance ? "****" : `$${getTotalPortfolioValue().toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+                <p className="text-5xl font-bold bg-gradient-to-r from-success via-chart-2 to-success bg-clip-text text-transparent">
+                  {hideBalance ? "••••••••" : `$${getTotalPortfolioValue().toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
                 </p>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleRefreshBalance}
                   disabled={isLoadingBalance}
-                  className="h-8 w-8"
+                  className="h-12 w-12 hover:bg-chart-1/20"
                 >
-                  <RefreshCw className={`h-4 w-4 ${isLoadingBalance ? "animate-spin" : ""}`} />
+                  <RefreshCw className={`h-7 w-7 text-chart-1 ${isLoadingBalance ? "animate-spin" : ""}`} />
                 </Button>
               </div>
-              <div className="flex items-center justify-center gap-1 text-sm">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <span className="text-green-500 font-semibold">+$1,234.56 (12.5%)</span>
-                <span className="text-muted-foreground">hôm nay</span>
+              <div className="flex items-center justify-center gap-8 text-sm p-4 bg-success/10 rounded-xl border border-success/20">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-success/20 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-success" />
+                  </div>
+                  <div>
+                    <span className="text-success font-bold text-lg">+$1,234.56</span>
+                    <span className="text-muted-foreground ml-2">(+5.24%)</span>
+                  </div>
+                </div>
+                <Separator orientation="vertical" className="h-8" />
+                <div className="text-muted-foreground font-medium">
+                  24h Thay đổi
+                </div>
               </div>
             </div>
 
-            {/* Quick Actions */}
+            {/* Premium Quick Actions */}
             <div className="grid grid-cols-4 gap-3">
               <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
                 <DialogTrigger asChild>
-                  <Button className="flex-col h-auto py-4 gap-2 bg-gradient-to-br from-primary to-accent hover:opacity-90">
-                    <ArrowUpRight className="h-5 w-5" />
+                  <Button className="flex-col h-auto py-4 gap-2 bg-gradient-to-br from-chart-1 to-chart-4 hover:from-chart-1/90 hover:to-chart-4/90 shadow-lg">
+                    <Send className="h-5 w-5" />
                     <span className="text-xs font-semibold">Gửi</span>
                   </Button>
                 </DialogTrigger>
@@ -644,8 +680,8 @@ const Wallet = () => {
 
               <Dialog open={showReceiveDialog} onOpenChange={setShowReceiveDialog}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="flex-col h-auto py-4 gap-2 border-2 hover:border-primary hover:bg-primary/5">
-                    <ArrowDownLeft className="h-5 w-5" />
+                  <Button variant="outline" className="flex-col h-auto py-4 gap-2 border-2 border-success/50 hover:border-success hover:bg-success/10 shadow-lg">
+                    <ArrowDownToLine className="h-5 w-5" />
                     <span className="text-xs font-semibold">Nhận</span>
                   </Button>
                 </DialogTrigger>
@@ -681,12 +717,12 @@ const Wallet = () => {
                 </DialogContent>
               </Dialog>
 
-              <Button variant="outline" className="flex-col h-auto py-4 gap-2 border-2 hover:border-primary hover:bg-primary/5">
+              <Button variant="outline" className="flex-col h-auto py-4 gap-2 border-2 border-chart-4/50 hover:border-chart-4 hover:bg-chart-4/10 shadow-lg">
                 <ArrowLeftRight className="h-5 w-5" />
                 <span className="text-xs font-semibold">Swap</span>
               </Button>
 
-              <Button variant="outline" className="flex-col h-auto py-4 gap-2 border-2 hover:border-primary hover:bg-primary/5">
+              <Button variant="outline" className="flex-col h-auto py-4 gap-2 border-2 border-warning/50 hover:border-warning hover:bg-warning/10 shadow-lg">
                 <DollarSign className="h-5 w-5" />
                 <span className="text-xs font-semibold">Mua</span>
               </Button>
@@ -694,120 +730,114 @@ const Wallet = () => {
           </CardContent>
         </Card>
 
-        {/* Tokens & Transactions Tabs */}
-        <Tabs defaultValue="tokens" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-12">
-            <TabsTrigger value="tokens" className="text-base font-semibold">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Tài sản
-            </TabsTrigger>
-            <TabsTrigger value="transactions" className="text-base font-semibold">
-              <History className="h-4 w-4 mr-2" />
-              Lịch sử
-            </TabsTrigger>
-          </TabsList>
+        {/* Premium Tokens & Transactions Tabs */}
+        <Card className="shadow-2xl border-2 backdrop-blur-sm">
+          <CardContent className="pt-6">
+            <Tabs defaultValue="tokens" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 h-12 bg-muted/50 p-1">
+                <TabsTrigger value="tokens" className="text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-chart-1 data-[state=active]:to-chart-4 data-[state=active]:text-white">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Tài sản
+                </TabsTrigger>
+                <TabsTrigger value="transactions" className="text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-chart-1 data-[state=active]:to-chart-4 data-[state=active]:text-white">
+                  <History className="h-4 w-4 mr-2" />
+                  Lịch sử
+                </TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="tokens" className="space-y-3 mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Danh sách Token</CardTitle>
-                <CardDescription>Quản lý tất cả tài sản crypto của bạn</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
+              <TabsContent value="tokens" className="space-y-3 mt-6">
                 {tokens.map((token, index) => (
                   <div
                     key={token.symbol}
-                    className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-muted/30 to-muted/10 hover:from-muted/50 hover:to-muted/20 transition-all cursor-pointer border border-border/50 hover:border-primary/30 animate-fade-in"
+                    className="group relative flex items-center justify-between p-5 rounded-2xl hover:shadow-xl transition-all border-2 border-transparent hover:border-chart-1/30 bg-gradient-to-r from-card to-muted/30 overflow-hidden animate-fade-in"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="text-4xl">{token.icon}</div>
+                    <div className={`absolute inset-0 bg-gradient-to-r ${token.color} opacity-0 group-hover:opacity-5 transition-opacity`}></div>
+                    <div className="flex items-center gap-4 relative z-10">
+                      <div className={`w-14 h-14 bg-gradient-to-br ${token.color} rounded-2xl flex items-center justify-center text-3xl shadow-lg`}>
+                        {token.icon}
+                      </div>
                       <div>
-                        <p className="font-bold text-lg text-foreground">{token.symbol}</p>
+                        <p className="font-bold text-lg">{token.symbol}</p>
                         <p className="text-sm text-muted-foreground">{token.name}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-lg text-foreground">
-                        {hideBalance ? "****" : token.balance.toLocaleString(undefined, {minimumFractionDigits: 4, maximumFractionDigits: 4})}
+                    <div className="text-right relative z-10">
+                      <p className="font-bold text-lg">
+                        {hideBalance ? "****" : `${token.balance} ${token.symbol}`}
                       </p>
                       <div className="flex items-center gap-2 justify-end">
-                        <p className="text-sm text-muted-foreground">
-                          ${hideBalance ? "****" : (token.balance * token.price).toLocaleString()}
+                        <p className="text-sm font-semibold text-foreground">
+                          ${hideBalance ? "****" : (token.balance * token.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
-                        <Badge variant={token.change >= 0 ? "default" : "destructive"} className="text-xs">
-                          {token.change >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
-                          {Math.abs(token.change)}%
-                        </Badge>
+                        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold ${token.change >= 0 ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive'}`}>
+                          {token.change >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                          <span>{Math.abs(token.change).toFixed(2)}%</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="transactions" className="space-y-3 mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Lịch sử giao dịch</CardTitle>
-                <CardDescription>Xem tất cả giao dịch của bạn</CardDescription>
-              </CardHeader>
-              <CardContent>
+              <TabsContent value="transactions" className="space-y-3 mt-6">
                 {transactions.length > 0 ? (
                   <div className="space-y-3">
                     {transactions.map((tx, index) => (
                       <div
                         key={tx.id}
-                        className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-muted/30 to-muted/10 hover:from-muted/50 hover:to-muted/20 transition-all border border-border/50 hover:border-primary/30 animate-fade-in"
+                        className="group flex items-center justify-between p-5 rounded-2xl hover:shadow-xl transition-all border-2 border-transparent hover:border-chart-1/30 bg-gradient-to-r from-card to-muted/30 animate-fade-in"
                         style={{ animationDelay: `${index * 0.1}s` }}
                       >
                         <div className="flex items-center gap-4">
-                          <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${
                             tx.type === "send" 
-                              ? "bg-red-500/20 text-red-500" 
+                              ? "bg-gradient-to-br from-chart-1 to-chart-4" 
                               : tx.type === "receive"
-                              ? "bg-green-500/20 text-green-500"
-                              : "bg-blue-500/20 text-blue-500"
+                              ? "bg-gradient-to-br from-success to-chart-2"
+                              : "bg-gradient-to-br from-chart-4 to-warning"
                           }`}>
                             {tx.type === "send" ? (
-                              <ArrowUpRight className="h-6 w-6" />
+                              <Send className="h-6 w-6 text-white" />
                             ) : tx.type === "receive" ? (
-                              <ArrowDownLeft className="h-6 w-6" />
+                              <ArrowDownToLine className="h-6 w-6 text-white" />
                             ) : (
-                              <ArrowLeftRight className="h-6 w-6" />
+                              <ArrowLeftRight className="h-6 w-6 text-white" />
                             )}
                           </div>
                           <div>
-                            <p className="font-semibold text-base text-foreground">
+                            <p className="font-bold text-base">
                               {tx.type === "send" ? "Đã gửi" : tx.type === "receive" ? "Đã nhận" : "Đã swap"} {tx.token}
                             </p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-muted-foreground font-medium">
                               {tx.type === "send" && `Đến ${tx.to}`}
                               {tx.type === "receive" && `Từ ${tx.from}`}
                               {tx.type === "swap" && `Từ ${tx.from}`}
                             </p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant={tx.status === "completed" ? "default" : "secondary"} className="text-xs">
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <Badge 
+                                variant={tx.status === "completed" ? "default" : "secondary"} 
+                                className={`text-xs ${tx.status === "completed" ? 'bg-success text-success-foreground' : ''}`}
+                              >
                                 {tx.status === "completed" ? "✓ Hoàn thành" : "⏳ Đang xử lý"}
                               </Badge>
                               <button 
                                 onClick={() => toast.info(`Hash: ${tx.hash}`)}
-                                className="text-xs text-primary hover:underline flex items-center gap-1"
+                                className="text-xs text-chart-1 hover:underline flex items-center gap-1 font-mono"
                               >
                                 <ExternalLink className="h-3 w-3" />
-                                Xem chi tiết
+                                {tx.hash.slice(0, 8)}...
                               </button>
                             </div>
                           </div>
                         </div>
                         <div className="text-right">
                           <p className={`font-bold text-lg ${
-                            tx.type === "send" ? "text-red-500" : tx.type === "receive" ? "text-green-500" : "text-blue-500"
+                            tx.type === "send" ? "text-foreground" : tx.type === "receive" ? "text-success" : "text-chart-4"
                           }`}>
                             {tx.type === "send" ? "-" : tx.type === "receive" ? "+" : "~"}{tx.amount} {tx.token}
                           </p>
-                          <p className="text-xs text-muted-foreground">{tx.date}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{tx.date}</p>
                         </div>
                       </div>
                     ))}
@@ -815,14 +845,13 @@ const Wallet = () => {
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
                     <History className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="font-semibold">Chưa có giao dịch nào</p>
-                    <p className="text-sm">Giao dịch của bạn sẽ hiển thị ở đây</p>
+                    <p>Chưa có giao dịch nào</p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
