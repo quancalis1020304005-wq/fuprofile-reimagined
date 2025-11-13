@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink } from "lucide-react";
+import WalletConnect from "@walletconnect/client";
+import QRCodeModal from "@walletconnect/qrcode-modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -16,15 +18,67 @@ const Wallet = () => {
   const [sendAddress, setSendAddress] = useState("");
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [showReceiveDialog, setShowReceiveDialog] = useState(false);
+  const [connector, setConnector] = useState<WalletConnect | null>(null);
+  const [chainId, setChainId] = useState<number>(0);
 
-  const handleConnectWallet = () => {
-    // Simulate connecting to BiggetWallet
-    const mockAddress = "0x" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    setWalletAddress(mockAddress);
-    setBalance(1250.50);
-    setIsConnected(true);
-    toast.success("Đã kết nối ví BiggetWallet thành công!");
+  const handleConnectWallet = async () => {
+    try {
+      const bridge = "https://bridge.walletconnect.org";
+      const walletConnector = new WalletConnect({ 
+        bridge, 
+        qrcodeModal: QRCodeModal 
+      });
+
+      if (!walletConnector.connected) {
+        await walletConnector.createSession();
+      } else {
+        const { chainId: connectedChainId, accounts } = walletConnector;
+        setWalletAddress(accounts[0]);
+        setChainId(connectedChainId);
+        setBalance(1250.50); // You can fetch real balance here
+        setIsConnected(true);
+        toast.success("Đã kết nối ví BiggetWallet thành công!");
+      }
+
+      setConnector(walletConnector);
+
+      // Setup event listeners
+      walletConnector.on("connect", (error, payload) => {
+        if (error) {
+          console.error("Connection error:", error);
+          toast.error("Lỗi kết nối ví!");
+          return;
+        }
+        const { accounts, chainId: connectedChainId } = payload.params[0];
+        setWalletAddress(accounts[0]);
+        setChainId(connectedChainId);
+        setBalance(1250.50); // You can fetch real balance here
+        setIsConnected(true);
+        toast.success("Đã kết nối ví BiggetWallet thành công!");
+      });
+
+      walletConnector.on("disconnect", (error) => {
+        if (error) {
+          console.error("Disconnect error:", error);
+        }
+        setIsConnected(false);
+        setWalletAddress("");
+        setBalance(0);
+        toast.info("Đã ngắt kết nối ví!");
+      });
+    } catch (error) {
+      console.error("WalletConnect error:", error);
+      toast.error("Không thể kết nối ví!");
+    }
   };
+
+  useEffect(() => {
+    return () => {
+      if (connector && connector.connected) {
+        connector.killSession();
+      }
+    };
+  }, [connector]);
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(walletAddress);
