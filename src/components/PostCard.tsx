@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
+import { VideoPlayer } from "./VideoPlayer";
 
 interface PostCardProps {
   author: string;
@@ -87,10 +88,9 @@ export const PostCard = ({ author, avatar, timeAgo, content, images, likes, comm
             {images.filter(media => media.type !== 'audio').map((media, index) => (
               <div key={index}>
                 {media.type === 'video' ? (
-                  <video 
+                  <VideoPlayer 
                     src={media.url}
-                    controls
-                    className="w-full h-auto object-cover max-h-[500px]"
+                    className="w-full"
                   />
                 ) : (
                   <img 
