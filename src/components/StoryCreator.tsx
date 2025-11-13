@@ -22,11 +22,11 @@ export const StoryCreator = () => {
   const timerRef = useRef<number | null>(null);
 
   const storyTypes = [
-    { type: "text" as StoryType, icon: Type, label: "Văn bản", color: "bg-blue-500" },
-    { type: "audio" as StoryType, icon: Mic, label: "Âm thanh", color: "bg-green-500" },
-    { type: "music" as StoryType, icon: Music, label: "Âm nhạc", color: "bg-purple-500" },
-    { type: "image" as StoryType, icon: ImageIcon, label: "Hình ảnh", color: "bg-orange-500" },
-    { type: "video" as StoryType, icon: Video, label: "Video", color: "bg-red-500" },
+    { type: "text" as StoryType, icon: Type, label: "Văn bản", color: "bg-accent" },
+    { type: "audio" as StoryType, icon: Mic, label: "Âm thanh", color: "bg-success" },
+    { type: "music" as StoryType, icon: Music, label: "Âm nhạc", color: "bg-info" },
+    { type: "image" as StoryType, icon: ImageIcon, label: "Hình ảnh", color: "bg-chart-3" },
+    { type: "video" as StoryType, icon: Video, label: "Video", color: "bg-muted-foreground" },
   ];
 
   const handleTypeSelect = (type: StoryType) => {
@@ -110,8 +110,8 @@ export const StoryCreator = () => {
         className="bg-muted/30 border-dashed border-2 border-muted-foreground/20 h-[180px] flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
         onClick={() => setOpen(true)}
       >
-        <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mb-2">
-          <Plus className="h-6 w-6 text-primary-foreground" />
+        <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center mb-2">
+          <Plus className="h-6 w-6 text-background" />
         </div>
         <p className="text-sm font-medium text-foreground">Tạo tin</p>
       </Card>
