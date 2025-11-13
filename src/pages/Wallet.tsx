@@ -23,6 +23,8 @@ const Wallet = () => {
   const [chainId, setChainId] = useState<number>(0);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [networkName, setNetworkName] = useState<string>("");
+  const [showQuickLogin, setShowQuickLogin] = useState(false);
+  const [quickLoginCode, setQuickLoginCode] = useState("");
 
   const getNetworkName = (chainId: number): string => {
     const networks: { [key: number]: string } = {
@@ -157,6 +159,24 @@ const Wallet = () => {
     };
   }, [connector]);
 
+  const handleQuickLogin = () => {
+    if (quickLoginCode.length < 1 || quickLoginCode.length > 2) {
+      toast.error("Vui lòng nhập mã 1-2 ký tự!");
+      return;
+    }
+    
+    // Giả lập kết nối với mã PIN
+    const mockAddress = `0x${quickLoginCode.padEnd(40, '0')}`;
+    setWalletAddress(mockAddress);
+    setChainId(1);
+    setIsConnected(true);
+    setBalance(Math.random() * 10);
+    setNetworkName("Ethereum Mainnet");
+    setShowQuickLogin(false);
+    setQuickLoginCode("");
+    toast.success("Đã đăng nhập BiggetWallet thành công!");
+  };
+
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(walletAddress);
     toast.success("Đã sao chép địa chỉ ví!");
@@ -215,13 +235,74 @@ const Wallet = () => {
               Ví của tôi
             </CardTitle>
             <p className="text-muted-foreground mb-6">Kết nối với BiggetWallet để bắt đầu</p>
-            <Button
-              onClick={handleConnectWallet}
-              className="bg-primary hover:bg-primary/90 gap-2"
-            >
-              <WalletIcon className="h-4 w-4" />
-              Kết nối BiggetWallet
-            </Button>
+            <div className="space-y-3">
+              <Button
+                onClick={handleConnectWallet}
+                className="w-full bg-primary hover:bg-primary/90 gap-2"
+              >
+                <WalletIcon className="h-4 w-4" />
+                Kết nối BiggetWallet
+              </Button>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">hoặc</span>
+                </div>
+              </div>
+
+              <Dialog open={showQuickLogin} onOpenChange={setShowQuickLogin}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full gap-2">
+                    Đăng nhập nhanh (1-2 ký tự)
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Đăng nhập nhanh BiggetWallet</DialogTitle>
+                    <DialogDescription>
+                      Nhập mã PIN (1-2 ký tự) của bạn để đăng nhập
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="quick-code">Mã PIN BiggetWallet</Label>
+                      <Input
+                        id="quick-code"
+                        placeholder="Nhập 1-2 ký tự"
+                        value={quickLoginCode}
+                        onChange={(e) => setQuickLoginCode(e.target.value.slice(0, 2))}
+                        maxLength={2}
+                        className="text-center text-2xl font-bold tracking-widest"
+                      />
+                      <p className="text-xs text-muted-foreground text-center">
+                        Mã PIN giúp bạn truy cập nhanh vào ví
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => {
+                        setShowQuickLogin(false);
+                        setQuickLoginCode("");
+                      }}
+                    >
+                      Hủy
+                    </Button>
+                    <Button 
+                      className="flex-1 bg-primary hover:bg-primary/90"
+                      onClick={handleQuickLogin}
+                    >
+                      Đăng nhập
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </Card>
         </div>
       </div>
