@@ -174,8 +174,8 @@ const Wallet = () => {
   }, [connector]);
 
   const handleRegister = () => {
-    if (registerCode.length !== 12) {
-      toast.error("Vui lòng nhập đúng 12 ký tự!");
+    if (registerCode.length !== 8) {
+      toast.error("Vui lòng nhập đúng 8 mã PIN!");
       return;
     }
 
@@ -203,8 +203,8 @@ const Wallet = () => {
   };
 
   const handleQuickLogin = () => {
-    if (quickLoginCode.length !== 12) {
-      toast.error("Vui lòng nhập đúng 12 ký tự!");
+    if (quickLoginCode.length !== 8) {
+      toast.error("Vui lòng nhập đúng 8 mã PIN!");
       return;
     }
 
@@ -215,8 +215,8 @@ const Wallet = () => {
       return;
     }
     
-    // Giả lập kết nối với mã PIN 12 ký tự
-    const mockAddress = `0x${quickLoginCode.repeat(4).slice(0, 40)}`;
+    // Giả lập kết nối với mã PIN 8 ký tự
+    const mockAddress = `0x${quickLoginCode.repeat(5).slice(0, 40)}`;
     setWalletAddress(mockAddress);
     setChainId(1);
     setIsConnected(true);
@@ -345,24 +345,25 @@ const Wallet = () => {
                         Đăng ký tài khoản
                       </DialogTitle>
                       <DialogDescription>
-                        Tạo mã PIN 12 ký tự để bảo vệ ví của bạn
+                        Tạo mã PIN 8 số để bảo vệ ví của bạn
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <div className="space-y-3">
-                        <Label htmlFor="register-code" className="text-base font-semibold">Mã PIN 12 ký tự</Label>
+                        <Label htmlFor="register-code" className="text-base font-semibold">Mã PIN 8 số</Label>
                         <Input
                           id="register-code"
-                          placeholder="Nhập 12 ký tự..."
+                          type="number"
+                          placeholder="Nhập 8 số..."
                           value={registerCode}
-                          onChange={(e) => setRegisterCode(e.target.value.slice(0, 12))}
-                          maxLength={12}
-                          className="text-center text-xl font-bold tracking-wider h-14 border-2 focus:border-primary"
+                          onChange={(e) => setRegisterCode(e.target.value.slice(0, 8))}
+                          maxLength={8}
+                          className="text-center text-2xl font-bold tracking-widest h-14 border-2 focus:border-primary"
                         />
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Đã nhập: {registerCode.length}/12</span>
-                          {registerCode.length === 12 && (
-                            <Badge variant="default" className="animate-scale-in">✓ Đủ ký tự</Badge>
+                          <span className="text-muted-foreground">Đã nhập: {registerCode.length}/8</span>
+                          {registerCode.length === 8 && (
+                            <Badge variant="default" className="animate-scale-in">✓ Đủ số</Badge>
                           )}
                         </div>
                       </div>
@@ -371,15 +372,16 @@ const Wallet = () => {
                         <Label htmlFor="register-confirm" className="text-base font-semibold">Xác nhận mã PIN</Label>
                         <Input
                           id="register-confirm"
-                          placeholder="Nhập lại 12 ký tự..."
+                          type="number"
+                          placeholder="Nhập lại 8 số..."
                           value={registerConfirmCode}
-                          onChange={(e) => setRegisterConfirmCode(e.target.value.slice(0, 12))}
-                          maxLength={12}
-                          className="text-center text-xl font-bold tracking-wider h-14 border-2 focus:border-primary"
+                          onChange={(e) => setRegisterConfirmCode(e.target.value.slice(0, 8))}
+                          maxLength={8}
+                          className="text-center text-2xl font-bold tracking-widest h-14 border-2 focus:border-primary"
                         />
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Đã nhập: {registerConfirmCode.length}/12</span>
-                          {registerConfirmCode.length === 12 && registerCode === registerConfirmCode && (
+                          <span className="text-muted-foreground">Đã nhập: {registerConfirmCode.length}/8</span>
+                          {registerConfirmCode.length === 8 && registerCode === registerConfirmCode && (
                             <Badge variant="default" className="animate-scale-in">✓ Khớp</Badge>
                           )}
                         </div>
@@ -404,7 +406,7 @@ const Wallet = () => {
                       <Button 
                         className="flex-1 h-11 bg-gradient-to-r from-primary to-accent hover:opacity-90 font-semibold"
                         onClick={handleRegister}
-                        disabled={registerCode.length !== 12 || registerCode !== registerConfirmCode}
+                        disabled={registerCode.length !== 8 || registerCode !== registerConfirmCode}
                       >
                         Đăng ký
                       </Button>
@@ -426,7 +428,7 @@ const Wallet = () => {
                         Đăng nhập
                       </DialogTitle>
                       <DialogDescription>
-                        Nhập mã PIN 12 ký tự đã đăng ký
+                        Nhập mã PIN 8 số đã đăng ký
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -434,16 +436,17 @@ const Wallet = () => {
                         <Label htmlFor="quick-code" className="text-base font-semibold">Mã PIN BiggetWallet</Label>
                         <Input
                           id="quick-code"
-                          placeholder="Nhập 12 ký tự..."
+                          type="number"
+                          placeholder="Nhập 8 số..."
                           value={quickLoginCode}
-                          onChange={(e) => setQuickLoginCode(e.target.value.slice(0, 12))}
-                          maxLength={12}
-                          className="text-center text-xl font-bold tracking-wider h-14 border-2 focus:border-primary"
+                          onChange={(e) => setQuickLoginCode(e.target.value.slice(0, 8))}
+                          maxLength={8}
+                          className="text-center text-2xl font-bold tracking-widest h-14 border-2 focus:border-primary"
                         />
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Đã nhập: {quickLoginCode.length}/12</span>
-                          {quickLoginCode.length === 12 && (
-                            <Badge variant="default" className="animate-scale-in">✓ Đủ ký tự</Badge>
+                          <span className="text-muted-foreground">Đã nhập: {quickLoginCode.length}/8</span>
+                          {quickLoginCode.length === 8 && (
+                            <Badge variant="default" className="animate-scale-in">✓ Đủ số</Badge>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground text-center bg-muted/50 p-3 rounded-lg">
@@ -466,7 +469,7 @@ const Wallet = () => {
                         <Button 
                           className="flex-1 h-11 bg-gradient-to-r from-primary to-accent hover:opacity-90 font-semibold"
                           onClick={handleQuickLogin}
-                          disabled={quickLoginCode.length !== 12}
+                          disabled={quickLoginCode.length !== 8}
                         >
                           Đăng nhập
                         </Button>
