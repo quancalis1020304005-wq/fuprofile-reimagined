@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,6 +7,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const LoginForm = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,6 +19,7 @@ export const LoginForm = () => {
       return;
     }
     toast.success("Đăng nhập thành công!");
+    setTimeout(() => navigate("/feed"), 500);
   };
 
   const handleSocialLogin = (provider: string) => {
