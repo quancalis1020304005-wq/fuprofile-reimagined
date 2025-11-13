@@ -1,20 +1,108 @@
-import { useState } from "react";
-import { Image, Video } from "lucide-react";
+import { useState, useRef } from "react";
+import { Image, Video, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const CreatePost = () => {
   const [content, setContent] = useState("");
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [mediaPreview, setMediaPreview] = useState<string[]>([]);
+  const [isPosting, setIsPosting] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
-  const handlePost = () => {
-    if (!content.trim()) {
-      toast.error("Vui lòng nhập nội dung bài viết");
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const fileArray = Array.from(files);
+    const newFiles = [...mediaFiles, ...fileArray];
+    
+    if (newFiles.length > 10) {
+      toast.error("Chỉ có thể upload tối đa 10 file");
       return;
     }
-    toast.success("Đã đăng bài viết thành công!");
-    setContent("");
+
+    setMediaFiles(newFiles);
+
+    // Create preview URLs
+    fileArray.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMediaPreview(prev => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeMedia = (index: number) => {
+    setMediaFiles(prev => prev.filter((_, i) => i !== index));
+    setMediaPreview(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handlePost = async () => {
+    if (!content.trim() && mediaFiles.length === 0) {
+      toast.error("Vui lòng nhập nội dung hoặc thêm ảnh/video");
+      return;
+    }
+
+    setIsPosting(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("Vui lòng đăng nhập để đăng bài");
+        return;
+      }
+
+      const mediaUrls: string[] = [];
+      const mediaTypes: string[] = [];
+
+      // Upload media files
+      for (const file of mediaFiles) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('posts-media')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('posts-media')
+          .getPublicUrl(fileName);
+
+        mediaUrls.push(publicUrl);
+        mediaTypes.push(file.type.startsWith('video/') ? 'video' : 'image');
+      }
+
+      // Create post
+      const { error: insertError } = await supabase
+        .from('posts')
+        .insert({
+          user_id: user.id,
+          content: content.trim() || null,
+          media_urls: mediaUrls.length > 0 ? mediaUrls : null,
+          media_types: mediaTypes.length > 0 ? mediaTypes : null,
+        });
+
+      if (insertError) throw insertError;
+
+      toast.success("Đã đăng bài viết thành công!");
+      setContent("");
+      setMediaFiles([]);
+      setMediaPreview([]);
+    } catch (error) {
+      console.error('Error posting:', error);
+      toast.error("Có lỗi xảy ra khi đăng bài");
+    } finally {
+      setIsPosting(false);
+    }
   };
 
   return (
@@ -25,20 +113,96 @@ export const CreatePost = () => {
           className="min-h-[100px] resize-none border-border bg-muted/30 mb-4"
           value={content}
           onChange={(e) => setContent(e.target.value)}
+          disabled={isPosting}
         />
+
+        {/* Media Preview */}
+        {mediaPreview.length > 0 && (
+          <div className="mb-4 grid grid-cols-2 gap-2">
+            {mediaPreview.map((preview, index) => (
+              <div key={index} className="relative group">
+                {mediaFiles[index].type.startsWith('video/') ? (
+                  <video 
+                    src={preview} 
+                    className="w-full h-48 object-cover rounded-lg"
+                    controls
+                  />
+                ) : (
+                  <img 
+                    src={preview} 
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                )}
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                  onClick={() => removeMedia(index)}
+                  disabled={isPosting}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => handleFileSelect(e, 'image')}
+              disabled={isPosting}
+            />
+            <input
+              ref={videoInputRef}
+              type="file"
+              accept="video/*"
+              multiple
+              className="hidden"
+              onChange={(e) => handleFileSelect(e, 'video')}
+              disabled={isPosting}
+            />
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2 text-muted-foreground hover:text-foreground"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={isPosting}
+            >
               <Image className="h-4 w-4" />
               <span>Ảnh</span>
             </Button>
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2 text-muted-foreground hover:text-foreground"
+              onClick={() => videoInputRef.current?.click()}
+              disabled={isPosting}
+            >
               <Video className="h-4 w-4" />
               <span>Video</span>
             </Button>
           </div>
-          <Button onClick={handlePost} className="bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary text-primary-foreground px-6 shadow-md shadow-primary/30 transition-all">
-            Đăng
+          <Button 
+            onClick={handlePost} 
+            className="bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary text-primary-foreground px-6 shadow-md shadow-primary/30 transition-all"
+            disabled={isPosting}
+          >
+            {isPosting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Đang đăng...
+              </>
+            ) : (
+              "Đăng"
+            )}
           </Button>
         </div>
       </CardContent>

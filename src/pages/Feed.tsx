@@ -1,5 +1,5 @@
 import { CreatePost } from "@/components/CreatePost";
-import { PostCard } from "@/components/PostCard";
+import { PostsFeed } from "@/components/PostsFeed";
 import { StoryCreator } from "@/components/StoryCreator";
 
 const Feed = () => {
@@ -12,6 +12,9 @@ const Feed = () => {
 
           {/* Create Post */}
           <CreatePost />
+
+          {/* Posts Feed */}
+          <PostsFeed />
         </div>
       </div>
     </div>

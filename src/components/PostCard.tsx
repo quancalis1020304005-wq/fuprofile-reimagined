@@ -10,12 +10,12 @@ interface PostCardProps {
   avatar?: string;
   timeAgo: string;
   content: string;
-  image?: string;
+  images?: Array<{ url: string; type: string }>;
   likes: number;
   comments: number;
 }
 
-export const PostCard = ({ author, avatar, timeAgo, content, image, likes, comments }: PostCardProps) => {
+export const PostCard = ({ author, avatar, timeAgo, content, images, likes, comments }: PostCardProps) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
 
@@ -55,9 +55,25 @@ export const PostCard = ({ author, avatar, timeAgo, content, image, likes, comme
 
       <CardContent className="pb-3">
         <p className="text-sm text-foreground whitespace-pre-wrap">{content}</p>
-        {image && (
-          <div className="mt-3 rounded-lg overflow-hidden">
-            <img src={image} alt="Post content" className="w-full h-auto object-cover" />
+        {images && images.length > 0 && (
+          <div className={`mt-3 rounded-lg overflow-hidden ${images.length === 1 ? '' : 'grid grid-cols-2 gap-1'}`}>
+            {images.map((media, index) => (
+              <div key={index}>
+                {media.type === 'video' ? (
+                  <video 
+                    src={media.url}
+                    controls
+                    className="w-full h-auto object-cover max-h-[500px]"
+                  />
+                ) : (
+                  <img 
+                    src={media.url}
+                    alt={`Post media ${index + 1}`}
+                    className="w-full h-auto object-cover max-h-[500px]"
+                  />
+                )}
+              </div>
+            ))}
           </div>
         )}
       </CardContent>
