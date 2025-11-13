@@ -1,8 +1,8 @@
-import { Heart, MessageCircle, Share2, MoreHorizontal } from "lucide-react";
+import { Heart, MessageCircle, Share2, MoreHorizontal, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 interface PostCardProps {
@@ -18,6 +18,22 @@ interface PostCardProps {
 export const PostCard = ({ author, avatar, timeAgo, content, images, likes, comments }: PostCardProps) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const audioFiles = images?.filter(media => media.type === 'audio') || [];
+  const hasAudio = audioFiles.length > 0;
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.addEventListener('ended', () => setIsPlaying(false));
+    }
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.removeEventListener('ended', () => setIsPlaying(false));
+      }
+    };
+  }, []);
 
   const handleLike = () => {
     setLiked(!liked);
@@ -31,6 +47,17 @@ export const PostCard = ({ author, avatar, timeAgo, content, images, likes, comm
 
   const handleShare = () => {
     toast.success("Đã sao chép link bài viết");
+  };
+
+  const toggleAudio = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
   };
 
   return (
@@ -98,11 +125,31 @@ export const PostCard = ({ author, avatar, timeAgo, content, images, likes, comm
             <MessageCircle className="h-4 w-4" />
             <span className="text-sm">{comments}</span>
           </Button>
+          {hasAudio && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 text-muted-foreground hover:text-primary"
+              onClick={toggleAudio}
+            >
+              {isPlaying ? (
+                <Volume2 className="h-4 w-4 text-primary" />
+              ) : (
+                <VolumeX className="h-4 w-4" />
+              )}
+              <span className="text-sm">{isPlaying ? "Đang phát" : "Âm thanh"}</span>
+            </Button>
+          )}
         </div>
         <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={handleShare}>
           <Share2 className="h-4 w-4" />
           <span className="text-sm">Chia sẻ</span>
         </Button>
+        
+        {/* Hidden audio player */}
+        {hasAudio && (
+          <audio ref={audioRef} src={audioFiles[0].url} className="hidden" />
+        )}
       </CardFooter>
     </Card>
   );
