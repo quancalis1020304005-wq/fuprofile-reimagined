@@ -26,7 +26,10 @@ const Wallet = () => {
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [networkName, setNetworkName] = useState<string>("");
   const [showQuickLogin, setShowQuickLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
   const [quickLoginCode, setQuickLoginCode] = useState("");
+  const [registerCode, setRegisterCode] = useState("");
+  const [registerConfirmCode, setRegisterConfirmCode] = useState("");
   const [hideBalance, setHideBalance] = useState(false);
   
   // Mock tokens data
@@ -170,9 +173,45 @@ const Wallet = () => {
     };
   }, [connector]);
 
+  const handleRegister = () => {
+    if (registerCode.length !== 12) {
+      toast.error("Vui lòng nhập đúng 12 ký tự!");
+      return;
+    }
+
+    if (registerCode !== registerConfirmCode) {
+      toast.error("Mã xác nhận không khớp!");
+      return;
+    }
+
+    // Kiểm tra xem tài khoản đã tồn tại chưa
+    const existingAccounts = JSON.parse(localStorage.getItem("biggetWalletAccounts") || "[]");
+    if (existingAccounts.includes(registerCode)) {
+      toast.error("Tài khoản này đã tồn tại!");
+      return;
+    }
+
+    // Lưu tài khoản mới
+    existingAccounts.push(registerCode);
+    localStorage.setItem("biggetWalletAccounts", JSON.stringify(existingAccounts));
+
+    toast.success("Đăng ký thành công! Bạn có thể đăng nhập ngay.");
+    setShowRegister(false);
+    setRegisterCode("");
+    setRegisterConfirmCode("");
+    setShowQuickLogin(true);
+  };
+
   const handleQuickLogin = () => {
     if (quickLoginCode.length !== 12) {
       toast.error("Vui lòng nhập đúng 12 ký tự!");
+      return;
+    }
+
+    // Kiểm tra tài khoản đã đăng ký chưa
+    const existingAccounts = JSON.parse(localStorage.getItem("biggetWalletAccounts") || "[]");
+    if (!existingAccounts.includes(quickLoginCode)) {
+      toast.error("Tài khoản chưa được đăng ký! Vui lòng đăng ký trước.");
       return;
     }
     
@@ -291,66 +330,162 @@ const Wallet = () => {
                 </div>
               </div>
 
-              <Dialog open={showQuickLogin} onOpenChange={setShowQuickLogin}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full gap-2 h-12 border-2 hover:border-primary hover:bg-primary/5">
-                    <DollarSign className="h-5 w-5" />
-                    Đăng nhập nhanh (12 ký tự)
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle className="text-2xl flex items-center gap-2">
-                      <WalletIcon className="h-6 w-6 text-primary" />
-                      Đăng nhập nhanh
-                    </DialogTitle>
-                    <DialogDescription>
-                      Nhập mã PIN 12 ký tự của bạn để truy cập ví
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-3">
-                      <Label htmlFor="quick-code" className="text-base font-semibold">Mã PIN BiggetWallet</Label>
-                      <Input
-                        id="quick-code"
-                        placeholder="Nhập 12 ký tự..."
-                        value={quickLoginCode}
-                        onChange={(e) => setQuickLoginCode(e.target.value.slice(0, 12))}
-                        maxLength={12}
-                        className="text-center text-xl font-bold tracking-wider h-14 border-2 focus:border-primary"
-                      />
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Đã nhập: {quickLoginCode.length}/12</span>
-                        {quickLoginCode.length === 12 && (
-                          <Badge variant="default" className="animate-scale-in">✓ Đủ ký tự</Badge>
-                        )}
+              <div className="grid grid-cols-2 gap-3">
+                <Dialog open={showRegister} onOpenChange={setShowRegister}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full gap-2 h-12 bg-gradient-to-r from-accent to-primary hover:opacity-90">
+                      <WalletIcon className="h-5 w-5" />
+                      Đăng ký
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl flex items-center gap-2">
+                        <WalletIcon className="h-6 w-6 text-primary" />
+                        Đăng ký tài khoản
+                      </DialogTitle>
+                      <DialogDescription>
+                        Tạo mã PIN 12 ký tự để bảo vệ ví của bạn
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-3">
+                        <Label htmlFor="register-code" className="text-base font-semibold">Mã PIN 12 ký tự</Label>
+                        <Input
+                          id="register-code"
+                          placeholder="Nhập 12 ký tự..."
+                          value={registerCode}
+                          onChange={(e) => setRegisterCode(e.target.value.slice(0, 12))}
+                          maxLength={12}
+                          className="text-center text-xl font-bold tracking-wider h-14 border-2 focus:border-primary"
+                        />
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Đã nhập: {registerCode.length}/12</span>
+                          {registerCode.length === 12 && (
+                            <Badge variant="default" className="animate-scale-in">✓ Đủ ký tự</Badge>
+                          )}
+                        </div>
                       </div>
+
+                      <div className="space-y-3">
+                        <Label htmlFor="register-confirm" className="text-base font-semibold">Xác nhận mã PIN</Label>
+                        <Input
+                          id="register-confirm"
+                          placeholder="Nhập lại 12 ký tự..."
+                          value={registerConfirmCode}
+                          onChange={(e) => setRegisterConfirmCode(e.target.value.slice(0, 12))}
+                          maxLength={12}
+                          className="text-center text-xl font-bold tracking-wider h-14 border-2 focus:border-primary"
+                        />
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Đã nhập: {registerConfirmCode.length}/12</span>
+                          {registerConfirmCode.length === 12 && registerCode === registerConfirmCode && (
+                            <Badge variant="default" className="animate-scale-in">✓ Khớp</Badge>
+                          )}
+                        </div>
+                      </div>
+
                       <p className="text-xs text-muted-foreground text-center bg-muted/50 p-3 rounded-lg">
-                        🔒 Mã PIN 12 ký tự giúp bảo mật và truy cập nhanh vào ví của bạn
+                        🔒 Hãy nhớ mã PIN này! Bạn sẽ cần nó để đăng nhập vào ví
                       </p>
                     </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <Button 
-                      variant="outline" 
-                      className="flex-1 h-11"
-                      onClick={() => {
-                        setShowQuickLogin(false);
-                        setQuickLoginCode("");
-                      }}
-                    >
-                      Hủy
-                    </Button>
-                    <Button 
-                      className="flex-1 h-11 bg-gradient-to-r from-primary to-accent hover:opacity-90 font-semibold"
-                      onClick={handleQuickLogin}
-                      disabled={quickLoginCode.length !== 12}
-                    >
+                    <div className="flex gap-3">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1 h-11"
+                        onClick={() => {
+                          setShowRegister(false);
+                          setRegisterCode("");
+                          setRegisterConfirmCode("");
+                        }}
+                      >
+                        Hủy
+                      </Button>
+                      <Button 
+                        className="flex-1 h-11 bg-gradient-to-r from-primary to-accent hover:opacity-90 font-semibold"
+                        onClick={handleRegister}
+                        disabled={registerCode.length !== 12 || registerCode !== registerConfirmCode}
+                      >
+                        Đăng ký
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={showQuickLogin} onOpenChange={setShowQuickLogin}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full gap-2 h-12 border-2 hover:border-primary hover:bg-primary/5">
+                      <DollarSign className="h-5 w-5" />
                       Đăng nhập
                     </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl flex items-center gap-2">
+                        <WalletIcon className="h-6 w-6 text-primary" />
+                        Đăng nhập
+                      </DialogTitle>
+                      <DialogDescription>
+                        Nhập mã PIN 12 ký tự đã đăng ký
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-3">
+                        <Label htmlFor="quick-code" className="text-base font-semibold">Mã PIN BiggetWallet</Label>
+                        <Input
+                          id="quick-code"
+                          placeholder="Nhập 12 ký tự..."
+                          value={quickLoginCode}
+                          onChange={(e) => setQuickLoginCode(e.target.value.slice(0, 12))}
+                          maxLength={12}
+                          className="text-center text-xl font-bold tracking-wider h-14 border-2 focus:border-primary"
+                        />
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Đã nhập: {quickLoginCode.length}/12</span>
+                          {quickLoginCode.length === 12 && (
+                            <Badge variant="default" className="animate-scale-in">✓ Đủ ký tự</Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground text-center bg-muted/50 p-3 rounded-lg">
+                          🔒 Nhập mã PIN bạn đã đăng ký để truy cập ví
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex gap-3">
+                        <Button 
+                          variant="outline" 
+                          className="flex-1 h-11"
+                          onClick={() => {
+                            setShowQuickLogin(false);
+                            setQuickLoginCode("");
+                          }}
+                        >
+                          Hủy
+                        </Button>
+                        <Button 
+                          className="flex-1 h-11 bg-gradient-to-r from-primary to-accent hover:opacity-90 font-semibold"
+                          onClick={handleQuickLogin}
+                          disabled={quickLoginCode.length !== 12}
+                        >
+                          Đăng nhập
+                        </Button>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          setShowQuickLogin(false);
+                          setShowRegister(true);
+                        }}
+                        className="text-xs"
+                      >
+                        Chưa có tài khoản? Đăng ký ngay
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
             
             <Separator className="my-6" />
