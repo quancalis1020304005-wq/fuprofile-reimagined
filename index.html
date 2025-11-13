@@ -19,9 +19,11 @@
 
   <body>
     <div id="root"></div>
-    <script>
-      // Polyfill for WalletConnect which expects Node.js global variable
+    <script type="module">
+      // Polyfills for WalletConnect
+      import { Buffer } from 'buffer';
       window.global = window;
+      window.Buffer = Buffer;
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
