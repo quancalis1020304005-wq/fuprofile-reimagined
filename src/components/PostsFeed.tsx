@@ -90,6 +90,7 @@ export const PostsFeed = () => {
       {posts.map((post) => (
         <PostCard
           key={post.id}
+          id={post.id}
           author="Người dùng"
           timeAgo={getTimeAgo(post.created_at)}
           content={post.content || ''}

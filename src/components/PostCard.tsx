@@ -5,8 +5,10 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { VideoPlayer } from "./VideoPlayer";
+import { CommentSection } from "./CommentSection";
 
 interface PostCardProps {
+  id: string;
   author: string;
   avatar?: string;
   timeAgo: string;
@@ -16,7 +18,7 @@ interface PostCardProps {
   comments: number;
 }
 
-export const PostCard = ({ author, avatar, timeAgo, content, images, likes, comments }: PostCardProps) => {
+export const PostCard = ({ id, author, avatar, timeAgo, content, images, likes, comments }: PostCardProps) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -40,10 +42,6 @@ export const PostCard = ({ author, avatar, timeAgo, content, images, likes, comm
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
     toast.success(liked ? "Đã bỏ thích" : "Đã thích bài viết");
-  };
-
-  const handleComment = () => {
-    toast.info("Tính năng bình luận đang được phát triển");
   };
 
   const handleShare = () => {
@@ -121,31 +119,27 @@ export const PostCard = ({ author, avatar, timeAgo, content, images, likes, comm
         )}
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between border-t border-border pt-3">
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`gap-2 ${liked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"}`}
-            onClick={handleLike}
-          >
-            <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
-            <span className="text-sm">{likeCount}</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2 text-muted-foreground"
-            onClick={handleComment}
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span className="text-sm">{comments}</span>
+      <CardFooter className="flex-col items-stretch gap-3 border-t border-border pt-3">
+        <div className="flex items-center justify-between">
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`gap-2 ${liked ? "text-red-500 hover:text-red-600" : "text-muted-foreground"}`}
+              onClick={handleLike}
+            >
+              <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+              <span className="text-sm">{likeCount}</span>
+            </Button>
+          </div>
+          <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={handleShare}>
+            <Share2 className="h-4 w-4" />
+            <span className="text-sm">Chia sẻ</span>
           </Button>
         </div>
-        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={handleShare}>
-          <Share2 className="h-4 w-4" />
-          <span className="text-sm">Chia sẻ</span>
-        </Button>
+
+        {/* Comment Section */}
+        <CommentSection postId={id} initialCommentCount={comments} />
         
         {/* Hidden audio player */}
         {hasAudio && (
