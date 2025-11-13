@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Settings as SettingsIcon, Upload, User, Bell, Shield, UserCog } from "lucide-react";
+import { useState, useRef } from "react";
+import { Settings as SettingsIcon, Upload, User, Bell, Shield, UserCog, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,8 +15,12 @@ const Settings = () => {
     fullName: "Lê Minh Quân",
     username: "Angel Quân",
     email: "quancalis1020304005@gmail.com",
-    bio: "Viết vài dòng về bản thân..."
+    bio: "Viết vài dòng về bản thân...",
+    avatar: ""
   });
+
+  const [avatarPreview, setAvatarPreview] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [notifications, setNotifications] = useState({
     posts: true,
@@ -27,11 +31,36 @@ const Settings = () => {
   });
 
   const handleSaveProfile = () => {
+    if (avatarPreview) {
+      setProfile({ ...profile, avatar: avatarPreview });
+    }
     toast.success("Đã lưu thay đổi!");
   };
 
   const handleUploadAvatar = () => {
-    toast.success("Đã tải ảnh lên!");
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Kích thước ảnh không được vượt quá 5MB");
+        return;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        toast.error("Vui lòng chọn file ảnh");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+        toast.success("Đã chọn ảnh đại diện mới");
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -74,16 +103,38 @@ const Settings = () => {
                 <CardDescription>PNG, JPG, JPEG tối đa 5MB</CardDescription>
               </CardHeader>
               <CardContent className="flex items-center gap-6">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src="" />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                    {profile.fullName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <Button onClick={handleUploadAvatar} variant="outline" className="gap-2">
-                  <Upload className="h-4 w-4" />
-                  Tải ảnh lên
-                </Button>
+                <div className="relative group">
+                  <Avatar className="h-24 w-24">
+                    <AvatarImage src={avatarPreview || profile.avatar} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                      {profile.fullName.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <button
+                    onClick={handleUploadAvatar}
+                    className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    <Camera className="h-8 w-8 text-white" />
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                  />
+                  <Button onClick={handleUploadAvatar} variant="outline" className="gap-2">
+                    <Upload className="h-4 w-4" />
+                    Tải ảnh lên
+                  </Button>
+                  {avatarPreview && (
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      ✓ Đã chọn ảnh mới
+                    </p>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
