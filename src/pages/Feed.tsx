@@ -1,7 +1,6 @@
 import { CreatePost } from "@/components/CreatePost";
 import { PostCard } from "@/components/PostCard";
 import { StoryCreator } from "@/components/StoryCreator";
-import { FriendSuggestions } from "@/components/FriendSuggestions";
 
 const Feed = () => {
   const posts = [
@@ -34,29 +33,19 @@ const Feed = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-[1400px] mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Main Content */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-4">
-            {/* Story Creator */}
-            <StoryCreator />
+      <div className="max-w-[1000px] mx-auto px-4 py-4">
+        <div className="space-y-4">
+          {/* Story Creator */}
+          <StoryCreator />
 
-            {/* Create Post */}
-            <CreatePost />
+          {/* Create Post */}
+          <CreatePost />
 
-            {/* Posts Feed */}
-            <div className="space-y-4">
-              {posts.map((post) => (
-                <PostCard key={post.id} {...post} />
-              ))}
-            </div>
-          </div>
-
-          {/* Right Sidebar - Friend Suggestions */}
-          <div className="lg:col-span-5 xl:col-span-4">
-            <div className="sticky top-20">
-              <FriendSuggestions />
-            </div>
+          {/* Posts Feed */}
+          <div className="space-y-4">
+            {posts.map((post) => (
+              <PostCard key={post.id} {...post} />
+            ))}
           </div>
         </div>
       </div>
