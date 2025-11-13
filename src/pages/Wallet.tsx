@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, RefreshCw, TrendingUp, TrendingDown, History, Settings, Eye, EyeOff, ArrowLeftRight, DollarSign, BarChart3, Send, ArrowDownToLine, Sparkles } from "lucide-react";
+import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, RefreshCw, TrendingUp, TrendingDown, History, Settings, Eye, EyeOff, ArrowLeftRight, DollarSign, BarChart3, Send, ArrowDownToLine, Sparkles, Wallet2 } from "lucide-react";
 import WalletConnect from "@walletconnect/client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
 import { ethers } from "ethers";
@@ -31,6 +31,7 @@ const Wallet = () => {
   const [registerCode, setRegisterCode] = useState("");
   const [registerConfirmCode, setRegisterConfirmCode] = useState("");
   const [hideBalance, setHideBalance] = useState(false);
+  const [connectionMethod, setConnectionMethod] = useState<"walletconnect" | "metamask" | "bigget" | null>(null);
   
   // Mock tokens data with auto-update
   const [tokens, setTokens] = useState([
@@ -115,6 +116,76 @@ const Wallet = () => {
     }
   };
 
+  const handleConnectMetaMask = async () => {
+    try {
+      // Check if MetaMask is installed
+      const ethereum = (window as any).ethereum;
+      
+      if (typeof ethereum === "undefined") {
+        toast.error("Vui lòng cài đặt MetaMask!");
+        window.open("https://metamask.io/download/", "_blank");
+        return;
+      }
+
+      // Request account access
+      const accounts = await ethereum.request({ 
+        method: "eth_requestAccounts" 
+      });
+      
+      if (accounts.length === 0) {
+        toast.error("Không tìm thấy tài khoản!");
+        return;
+      }
+
+      const address = accounts[0];
+      const chainIdHex = await ethereum.request({ 
+        method: "eth_chainId" 
+      });
+      const chain = parseInt(chainIdHex, 16);
+
+      setWalletAddress(address);
+      setChainId(chain);
+      setIsConnected(true);
+      setConnectionMethod("metamask");
+      await fetchBalance(address, chain);
+      toast.success("Đã kết nối MetaMask thành công!");
+
+      // Listen for account changes
+      ethereum.on("accountsChanged", (accounts: string[]) => {
+        if (accounts.length === 0) {
+          setIsConnected(false);
+          setWalletAddress("");
+          setBalance(0);
+          setNetworkName("");
+          setConnectionMethod(null);
+          toast.info("Đã ngắt kết nối MetaMask!");
+        } else {
+          setWalletAddress(accounts[0]);
+          fetchBalance(accounts[0], chainId);
+          toast.info("Đã chuyển tài khoản!");
+        }
+      });
+
+      // Listen for chain changes
+      ethereum.on("chainChanged", (chainIdHex: string) => {
+        const newChain = parseInt(chainIdHex, 16);
+        setChainId(newChain);
+        if (walletAddress) {
+          fetchBalance(walletAddress, newChain);
+        }
+        toast.info("Đã chuyển mạng!");
+      });
+
+    } catch (error: any) {
+      console.error("MetaMask connection error:", error);
+      if (error.code === 4001) {
+        toast.error("Bạn đã từ chối kết nối!");
+      } else {
+        toast.error("Không thể kết nối MetaMask!");
+      }
+    }
+  };
+
   const handleConnectWallet = async () => {
     try {
       const bridge = "https://bridge.walletconnect.org";
@@ -130,8 +201,9 @@ const Wallet = () => {
         setWalletAddress(accounts[0]);
         setChainId(connectedChainId);
         setIsConnected(true);
+        setConnectionMethod("walletconnect");
         await fetchBalance(accounts[0], connectedChainId);
-        toast.success("Đã kết nối ví BiggetWallet thành công!");
+        toast.success("Đã kết nối WalletConnect thành công!");
       }
 
       setConnector(walletConnector);
@@ -147,8 +219,9 @@ const Wallet = () => {
         setWalletAddress(accounts[0]);
         setChainId(connectedChainId);
         setIsConnected(true);
+        setConnectionMethod("walletconnect");
         await fetchBalance(accounts[0], connectedChainId);
-        toast.success("Đã kết nối ví BiggetWallet thành công!");
+        toast.success("Đã kết nối WalletConnect thành công!");
       });
 
       walletConnector.on("session_update", async (error, payload) => {
@@ -171,6 +244,7 @@ const Wallet = () => {
         setWalletAddress("");
         setBalance(0);
         setNetworkName("");
+        setConnectionMethod(null);
         toast.info("Đã ngắt kết nối ví!");
       });
     } catch (error) {
@@ -334,6 +408,14 @@ const Wallet = () => {
             </CardTitle>
             <p className="text-muted-foreground mb-8 text-lg">Nền tảng giao dịch tiền điện tử hàng đầu</p>
             <div className="space-y-4">
+              <Button
+                onClick={handleConnectMetaMask}
+                className="w-full bg-gradient-to-r from-warning to-chart-2 hover:from-warning/90 hover:to-chart-2/90 gap-2 h-12 text-base font-semibold shadow-xl"
+              >
+                <Wallet2 className="h-5 w-5" />
+                Kết nối MetaMask
+              </Button>
+              
               <Button
                 onClick={handleConnectWallet}
                 className="w-full bg-gradient-to-r from-chart-1 to-chart-4 hover:from-chart-1/90 hover:to-chart-4/90 gap-2 h-12 text-base font-semibold shadow-xl"
