@@ -10,11 +10,6 @@ interface Post {
   media_urls: string[] | null;
   media_types: string[] | null;
   created_at: string;
-  profiles: {
-    full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
-  } | null;
 }
 
 export const PostsFeed = () => {
@@ -47,17 +42,10 @@ export const PostsFeed = () => {
 
   const fetchPosts = async () => {
     try {
-  const { data, error } = await supabase
-    .from('posts')
-    .select(`
-      *,
-      profiles!posts_user_id_fkey (
-        full_name,
-        username,
-        avatar_url
-      )
-    `)
-    .order('created_at', { ascending: false });
+      const { data, error } = (await supabase
+        .from('posts' as any)
+        .select('*')
+        .order('created_at', { ascending: false })) as any;
 
       if (error) throw error;
 
@@ -102,8 +90,7 @@ export const PostsFeed = () => {
       {posts.map((post) => (
         <PostCard
           key={post.id}
-          author={post.profiles?.full_name || post.profiles?.username || 'Người dùng'}
-          avatar={post.profiles?.avatar_url}
+          author="Người dùng"
           timeAgo={getTimeAgo(post.created_at)}
           content={post.content || ''}
           images={post.media_urls?.map((url, index) => ({

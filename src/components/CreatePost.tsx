@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Image, Video, X, Loader2 } from "lucide-react";
+import { Image, Video, X, Loader2, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,8 +13,9 @@ export const CreatePost = () => {
   const [isPosting, setIsPosting] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video' | 'audio') => {
     const files = event.target.files;
     if (!files) return;
 
@@ -78,18 +79,24 @@ export const CreatePost = () => {
           .getPublicUrl(fileName);
 
         mediaUrls.push(publicUrl);
-        mediaTypes.push(file.type.startsWith('video/') ? 'video' : 'image');
+        if (file.type.startsWith('video/')) {
+          mediaTypes.push('video');
+        } else if (file.type.startsWith('audio/')) {
+          mediaTypes.push('audio');
+        } else {
+          mediaTypes.push('image');
+        }
       }
 
       // Create post
-      const { error: insertError } = await supabase
-        .from('posts')
+      const { error: insertError } = (await supabase
+        .from('posts' as any)
         .insert({
           user_id: user.id,
           content: content.trim() || null,
           media_urls: mediaUrls.length > 0 ? mediaUrls : null,
           media_types: mediaTypes.length > 0 ? mediaTypes : null,
-        });
+        })) as any;
 
       if (insertError) throw insertError;
 
@@ -127,6 +134,14 @@ export const CreatePost = () => {
                     className="w-full h-48 object-cover rounded-lg"
                     controls
                   />
+                ) : mediaFiles[index].type.startsWith('audio/') ? (
+                  <div className="w-full h-48 bg-muted/50 rounded-lg flex flex-col items-center justify-center gap-3">
+                    <Music className="h-12 w-12 text-primary" />
+                    <p className="text-sm text-muted-foreground px-4 truncate max-w-full">
+                      {mediaFiles[index].name}
+                    </p>
+                    <audio src={preview} controls className="w-[90%]" />
+                  </div>
                 ) : (
                   <img 
                     src={preview} 
@@ -168,6 +183,15 @@ export const CreatePost = () => {
               onChange={(e) => handleFileSelect(e, 'video')}
               disabled={isPosting}
             />
+            <input
+              ref={audioInputRef}
+              type="file"
+              accept="audio/mpeg,audio/mp3"
+              multiple
+              className="hidden"
+              onChange={(e) => handleFileSelect(e, 'audio')}
+              disabled={isPosting}
+            />
             
             <Button 
               variant="ghost" 
@@ -188,6 +212,16 @@ export const CreatePost = () => {
             >
               <Video className="h-4 w-4" />
               <span>Video</span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2 text-muted-foreground hover:text-foreground"
+              onClick={() => audioInputRef.current?.click()}
+              disabled={isPosting}
+            >
+              <Music className="h-4 w-4" />
+              <span>MP3</span>
             </Button>
           </div>
           <Button 
