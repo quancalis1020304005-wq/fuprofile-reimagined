@@ -20,9 +20,9 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/feed" element={<Layout><Feed /></Layout>} />
           <Route path="/friends" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang bạn bè đang được phát triển</div></Layout>} />
-          <Route path="/notifications" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang thông báo đang được phát triển</div></Layout>} />
-          <Route path="/messages" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang tin nhắn đang được phát triển</div></Layout>} />
-          <Route path="/profile" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang hồ sơ đang được phát triển</div></Layout>} />
+          <Route path="/groups" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang nhóm đang được phát triển</div></Layout>} />
+          <Route path="/marketplace" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang marketplace đang được phát triển</div></Layout>} />
+          <Route path="/wallet" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang ví đang được phát triển</div></Layout>} />
           <Route path="/settings" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang cài đặt đang được phát triển</div></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

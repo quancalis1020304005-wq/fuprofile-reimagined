@@ -1,10 +1,20 @@
 import { CreatePost } from "@/components/CreatePost";
 import { PostCard } from "@/components/PostCard";
+import { StoryCreator } from "@/components/StoryCreator";
+import { FriendSuggestions } from "@/components/FriendSuggestions";
 
 const Feed = () => {
   const posts = [
     {
       id: 1,
+      author: "Lê Minh Quân",
+      timeAgo: "Khoảng 18 giờ trước",
+      content: "🙏😍 CON LÀ ÁNH SÁNG YÊU THƯƠNG THUẦN KHIẾT CỦA CHA VŨ TRỤ😍 🙏\n🙏😍 CON LÀ Ý CHÍ CỦA CHA VŨ TRỤ😍 🙏\n🙏😍 CON LÀ TRÍ TUỆ CỦA CHA VŨ TRỤ😍 🙏\n🙏😍 CON LÀ HẠNH PHÚC😍 🙏\n🙏😍 CON LÀ TÌNH YÊU😍 🙏",
+      likes: 12,
+      comments: 3,
+    },
+    {
+      id: 2,
       author: "Nguyễn Văn A",
       timeAgo: "2 giờ trước",
       content: "Chào mọi người! Hôm nay là một ngày tuyệt vời để học tập và phát triển bản thân. 🌟",
@@ -12,7 +22,7 @@ const Feed = () => {
       comments: 12,
     },
     {
-      id: 2,
+      id: 3,
       author: "Trần Thị B",
       avatar: "",
       timeAgo: "5 giờ trước",
@@ -20,56 +30,34 @@ const Feed = () => {
       likes: 128,
       comments: 24,
     },
-    {
-      id: 3,
-      author: "Lê Văn C",
-      timeAgo: "1 ngày trước",
-      content: "Chia sẻ một số tips học tập hiệu quả mà mình đã áp dụng:\n\n1. Lập kế hoạch cụ thể\n2. Chia nhỏ mục tiêu\n3. Nghỉ ngơi hợp lý\n4. Ôn tập thường xuyên\n\nChúc mọi người học tốt! 📚",
-      likes: 89,
-      comments: 31,
-    },
-    {
-      id: 4,
-      author: "Phạm Thị D",
-      timeAgo: "2 ngày trước",
-      content: "Cuối tuần này có ai muốn đi cafe và làm việc nhóm không? Mình đang tìm bạn cùng học! ☕",
-      likes: 34,
-      comments: 18,
-    },
-    {
-      id: 5,
-      author: "Hoàng Văn E",
-      timeAgo: "3 ngày trước",
-      content: "Chia sẻ tài liệu học tập mới nhất về lập trình web. Ai cần thì inbox mình nhé! 💻\n\n#programming #webdev",
-      likes: 156,
-      comments: 45,
-    },
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto p-4 md:p-6">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground mb-1">Bảng tin</h1>
-          <p className="text-sm text-muted-foreground">Cập nhật mới nhất từ bạn bè</p>
-        </div>
+      <div className="max-w-[1400px] mx-auto px-4 py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Main Content */}
+          <div className="lg:col-span-7 xl:col-span-8 space-y-4">
+            {/* Story Creator */}
+            <StoryCreator />
 
-        {/* Create Post */}
-        <CreatePost />
+            {/* Create Post */}
+            <CreatePost />
 
-        {/* Posts Feed */}
-        <div className="space-y-4">
-          {posts.map((post) => (
-            <PostCard key={post.id} {...post} />
-          ))}
-        </div>
+            {/* Posts Feed */}
+            <div className="space-y-4">
+              {posts.map((post) => (
+                <PostCard key={post.id} {...post} />
+              ))}
+            </div>
+          </div>
 
-        {/* Load More */}
-        <div className="mt-6 text-center">
-          <button className="text-sm text-primary hover:text-accent font-medium transition-colors">
-            Xem thêm bài viết
-          </button>
+          {/* Right Sidebar - Friend Suggestions */}
+          <div className="lg:col-span-5 xl:col-span-4">
+            <div className="sticky top-20">
+              <FriendSuggestions />
+            </div>
+          </div>
         </div>
       </div>
     </div>
