@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Plus, Search, MapPin } from "lucide-react";
+import { Plus, Search, MapPin, MoreVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -35,7 +36,7 @@ const Marketplace = () => {
     category: "electronics"
   });
 
-  const products: Product[] = [
+  const [products, setProducts] = useState<Product[]>([
     {
       id: 1,
       title: "Điện thoại Nothing Phone",
@@ -58,7 +59,7 @@ const Marketplace = () => {
       image: "",
       category: "collectibles"
     }
-  ];
+  ]);
 
   const handleCreateProduct = () => {
     if (!newProduct.title || !newProduct.price) {
@@ -76,9 +77,35 @@ const Marketplace = () => {
     });
   };
 
+  const handleDeleteProduct = (productId: number) => {
+    setProducts(products.filter(p => p.id !== productId));
+    toast.success("Đã xóa sản phẩm");
+  };
+
   const ProductCard = ({ product }: { product: Product }) => (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-      <div className="aspect-square bg-muted flex items-center justify-center">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow relative">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="absolute top-2 right-2 z-10 bg-background/80 hover:bg-background"
+          >
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem 
+            onClick={() => handleDeleteProduct(product.id)}
+            className="text-destructive focus:text-destructive cursor-pointer"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Xóa sản phẩm
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      
+      <div className="aspect-square bg-muted flex items-center justify-center cursor-pointer">
         {product.image ? (
           <img src={product.image} alt={product.title} className="w-full h-full object-cover" />
         ) : (
