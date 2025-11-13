@@ -10,6 +10,7 @@ import Friends from "./pages/Friends";
 import Groups from "./pages/Groups";
 import Marketplace from "./pages/Marketplace";
 import Wallet from "./pages/Wallet";
+import GamePlay from "./pages/GamePlay";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/groups" element={<Layout><Groups /></Layout>} />
           <Route path="/marketplace" element={<Layout><Marketplace /></Layout>} />
           <Route path="/wallet" element={<Layout><Wallet /></Layout>} />
+          <Route path="/gameplay" element={<Layout><GamePlay /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

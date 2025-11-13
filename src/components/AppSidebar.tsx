@@ -1,4 +1,4 @@
-import { Home, Users, UsersRound, ShoppingBag, Wallet, Settings } from "lucide-react";
+import { Home, Users, UsersRound, ShoppingBag, Wallet, Gamepad2, Settings } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -18,6 +18,7 @@ const mainItems = [
   { title: "Nhóm", url: "/groups", icon: UsersRound },
   { title: "Marketplace", url: "/marketplace", icon: ShoppingBag },
   { title: "Ví", url: "/wallet", icon: Wallet },
+  { title: "GamePlay", url: "/gameplay", icon: Gamepad2 },
   { title: "Cài đặt", url: "/settings", icon: Settings },
 ];
 
