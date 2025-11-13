@@ -25,13 +25,8 @@ const Wallet = () => {
   const [chainId, setChainId] = useState<number>(0);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [networkName, setNetworkName] = useState<string>("");
-  const [showQuickLogin, setShowQuickLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
-  const [quickLoginCode, setQuickLoginCode] = useState("");
-  const [registerCode, setRegisterCode] = useState("");
-  const [registerConfirmCode, setRegisterConfirmCode] = useState("");
   const [hideBalance, setHideBalance] = useState(false);
-  const [connectionMethod, setConnectionMethod] = useState<"walletconnect" | "metamask" | "bigget" | null>(null);
+  const [connectionMethod, setConnectionMethod] = useState<"walletconnect" | "metamask" | null>(null);
   
   // Mock tokens data with auto-update
   const [tokens, setTokens] = useState([
@@ -268,59 +263,6 @@ const Wallet = () => {
     };
   }, [connector]);
 
-  const handleRegister = () => {
-    if (registerCode.length !== 8) {
-      toast.error("Vui lòng nhập đúng 8 mã PIN!");
-      return;
-    }
-
-    if (registerCode !== registerConfirmCode) {
-      toast.error("Mã xác nhận không khớp!");
-      return;
-    }
-
-    // Kiểm tra xem tài khoản đã tồn tại chưa
-    const existingAccounts = JSON.parse(localStorage.getItem("biggetWalletAccounts") || "[]");
-    if (existingAccounts.includes(registerCode)) {
-      toast.error("Tài khoản này đã tồn tại!");
-      return;
-    }
-
-    // Lưu tài khoản mới
-    existingAccounts.push(registerCode);
-    localStorage.setItem("biggetWalletAccounts", JSON.stringify(existingAccounts));
-
-    toast.success("Đăng ký thành công! Bạn có thể đăng nhập ngay.");
-    setShowRegister(false);
-    setRegisterCode("");
-    setRegisterConfirmCode("");
-    setShowQuickLogin(true);
-  };
-
-  const handleQuickLogin = () => {
-    if (quickLoginCode.length !== 8) {
-      toast.error("Vui lòng nhập đúng 8 mã PIN!");
-      return;
-    }
-
-    // Kiểm tra tài khoản đã đăng ký chưa
-    const existingAccounts = JSON.parse(localStorage.getItem("biggetWalletAccounts") || "[]");
-    if (!existingAccounts.includes(quickLoginCode)) {
-      toast.error("Tài khoản chưa được đăng ký! Vui lòng đăng ký trước.");
-      return;
-    }
-    
-    // Giả lập kết nối với mã PIN 8 ký tự
-    const mockAddress = `0x${quickLoginCode.repeat(5).slice(0, 40)}`;
-    setWalletAddress(mockAddress);
-    setChainId(1);
-    setIsConnected(true);
-    setBalance(12500.75);
-    setNetworkName("Ethereum Mainnet");
-    setShowQuickLogin(false);
-    setQuickLoginCode("");
-    toast.success("Đã đăng nhập BiggetWallet thành công!");
-  };
   
   const getTotalPortfolioValue = () => {
     return tokens.reduce((total, token) => total + (token.balance * token.price), 0);
@@ -404,9 +346,9 @@ const Wallet = () => {
               </div>
             </div>
             <CardTitle className="mb-3 text-4xl font-bold bg-gradient-to-r from-chart-1 via-chart-4 to-warning bg-clip-text text-transparent">
-              BiggetWallet
+              MetaMask Wallet
             </CardTitle>
-            <p className="text-muted-foreground mb-8 text-lg">Nền tảng giao dịch tiền điện tử hàng đầu</p>
+            <p className="text-muted-foreground mb-8 text-lg">Kết nối ví tiền điện tử của bạn</p>
             <div className="space-y-4">
               <Button
                 onClick={handleConnectMetaMask}
@@ -423,175 +365,6 @@ const Wallet = () => {
                 <WalletIcon className="h-5 w-5" />
                 Kết nối WalletConnect
               </Button>
-              
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-3 text-muted-foreground font-medium">hoặc</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Dialog open={showRegister} onOpenChange={setShowRegister}>
-                  <DialogTrigger asChild>
-                    <Button className="w-full gap-2 h-12 bg-gradient-to-r from-chart-1 to-chart-4 hover:from-chart-1/90 hover:to-chart-4/90">
-                      <WalletIcon className="h-5 w-5" />
-                      Đăng ký
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="text-2xl flex items-center gap-2">
-                        <WalletIcon className="h-6 w-6 text-primary" />
-                        Đăng ký tài khoản
-                      </DialogTitle>
-                      <DialogDescription>
-                        Tạo mã PIN 8 số để bảo vệ ví của bạn
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-3">
-                        <Label htmlFor="register-code" className="text-base font-semibold">Mã PIN 8 số</Label>
-                        <Input
-                          id="register-code"
-                          type="number"
-                          placeholder="Nhập 8 số..."
-                          value={registerCode}
-                          onChange={(e) => setRegisterCode(e.target.value.slice(0, 8))}
-                          maxLength={8}
-                          className="text-center text-2xl font-bold tracking-widest h-14 border-2 focus:border-primary"
-                        />
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Đã nhập: {registerCode.length}/8</span>
-                          {registerCode.length === 8 && (
-                            <Badge variant="default" className="animate-scale-in">✓ Đủ số</Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <Label htmlFor="register-confirm" className="text-base font-semibold">Xác nhận mã PIN</Label>
-                        <Input
-                          id="register-confirm"
-                          type="number"
-                          placeholder="Nhập lại 8 số..."
-                          value={registerConfirmCode}
-                          onChange={(e) => setRegisterConfirmCode(e.target.value.slice(0, 8))}
-                          maxLength={8}
-                          className="text-center text-2xl font-bold tracking-widest h-14 border-2 focus:border-primary"
-                        />
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Đã nhập: {registerConfirmCode.length}/8</span>
-                          {registerConfirmCode.length === 8 && registerCode === registerConfirmCode && (
-                            <Badge variant="default" className="animate-scale-in">✓ Khớp</Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-muted-foreground text-center bg-muted/50 p-3 rounded-lg">
-                        🔒 Hãy nhớ mã PIN này! Bạn sẽ cần nó để đăng nhập vào ví
-                      </p>
-                    </div>
-                    <div className="flex gap-3">
-                      <Button 
-                        variant="outline" 
-                        className="flex-1 h-11"
-                        onClick={() => {
-                          setShowRegister(false);
-                          setRegisterCode("");
-                          setRegisterConfirmCode("");
-                        }}
-                      >
-                        Hủy
-                      </Button>
-                      <Button 
-                        className="flex-1 h-11 bg-gradient-to-r from-primary to-accent hover:opacity-90 font-semibold"
-                        onClick={handleRegister}
-                        disabled={registerCode.length !== 8 || registerCode !== registerConfirmCode}
-                      >
-                        Đăng ký
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-
-                <Dialog open={showQuickLogin} onOpenChange={setShowQuickLogin}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="w-full gap-2 h-12 border-2 border-chart-1/50 hover:border-chart-1 hover:bg-chart-1/10">
-                      <DollarSign className="h-5 w-5" />
-                      Đăng nhập
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="text-2xl flex items-center gap-2">
-                        <WalletIcon className="h-6 w-6 text-primary" />
-                        Đăng nhập
-                      </DialogTitle>
-                      <DialogDescription>
-                        Nhập mã PIN 8 số đã đăng ký
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-3">
-                        <Label htmlFor="quick-code" className="text-base font-semibold">Mã PIN BiggetWallet</Label>
-                        <Input
-                          id="quick-code"
-                          type="number"
-                          placeholder="Nhập 8 số..."
-                          value={quickLoginCode}
-                          onChange={(e) => setQuickLoginCode(e.target.value.slice(0, 8))}
-                          maxLength={8}
-                          className="text-center text-2xl font-bold tracking-widest h-14 border-2 focus:border-primary"
-                        />
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Đã nhập: {quickLoginCode.length}/8</span>
-                          {quickLoginCode.length === 8 && (
-                            <Badge variant="default" className="animate-scale-in">✓ Đủ số</Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground text-center bg-muted/50 p-3 rounded-lg">
-                          🔒 Nhập mã PIN bạn đã đăng ký để truy cập ví
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                      <div className="flex gap-3">
-                        <Button 
-                          variant="outline" 
-                          className="flex-1 h-11"
-                          onClick={() => {
-                            setShowQuickLogin(false);
-                            setQuickLoginCode("");
-                          }}
-                        >
-                          Hủy
-                        </Button>
-                        <Button 
-                          className="flex-1 h-11 bg-gradient-to-r from-primary to-accent hover:opacity-90 font-semibold"
-                          onClick={handleQuickLogin}
-                          disabled={quickLoginCode.length !== 8}
-                        >
-                          Đăng nhập
-                        </Button>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => {
-                          setShowQuickLogin(false);
-                          setShowRegister(true);
-                        }}
-                        className="text-xs"
-                      >
-                        Chưa có tài khoản? Đăng ký ngay
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
             </div>
             
             <Separator className="my-6" />
@@ -619,7 +392,9 @@ const Wallet = () => {
                   <Sparkles className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-chart-1 to-chart-4 bg-clip-text text-transparent">BiggetWallet Premium</h1>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-chart-1 to-chart-4 bg-clip-text text-transparent">
+                    {connectionMethod === "metamask" ? "MetaMask Wallet" : "WalletConnect"}
+                  </h1>
                   <div className="flex items-center gap-2 mt-1">
                     <code className="text-sm bg-muted/80 backdrop-blur px-3 py-1.5 rounded-lg border border-border/50 font-mono">
                       {walletAddress.slice(0, 8)}...{walletAddress.slice(-6)}
@@ -780,8 +555,14 @@ const Wallet = () => {
                   <div className="space-y-4 py-4">
                     <div className="p-6 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg text-center space-y-4 border-2 border-primary/20">
                       <div className="flex items-center justify-center gap-2">
-                        <WalletIcon className="h-5 w-5 text-primary" />
-                        <p className="text-sm font-semibold">BiggetWallet</p>
+                        {connectionMethod === "metamask" ? (
+                          <Wallet2 className="h-5 w-5 text-warning" />
+                        ) : (
+                          <WalletIcon className="h-5 w-5 text-primary" />
+                        )}
+                        <p className="text-sm font-semibold">
+                          {connectionMethod === "metamask" ? "MetaMask" : "WalletConnect"}
+                        </p>
                       </div>
                       <p className="text-sm break-all font-mono bg-background/80 p-3 rounded">{walletAddress}</p>
                       <Button 
