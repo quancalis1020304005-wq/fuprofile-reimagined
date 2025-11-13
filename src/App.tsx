@@ -8,6 +8,9 @@ import Index from "./pages/Index";
 import Feed from "./pages/Feed";
 import Friends from "./pages/Friends";
 import Groups from "./pages/Groups";
+import Marketplace from "./pages/Marketplace";
+import Wallet from "./pages/Wallet";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,9 +26,9 @@ const App = () => (
           <Route path="/feed" element={<Layout><Feed /></Layout>} />
           <Route path="/friends" element={<Layout><Friends /></Layout>} />
           <Route path="/groups" element={<Layout><Groups /></Layout>} />
-          <Route path="/marketplace" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang marketplace đang được phát triển</div></Layout>} />
-          <Route path="/wallet" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang ví đang được phát triển</div></Layout>} />
-          <Route path="/settings" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang cài đặt đang được phát triển</div></Layout>} />
+          <Route path="/marketplace" element={<Layout><Marketplace /></Layout>} />
+          <Route path="/wallet" element={<Layout><Wallet /></Layout>} />
+          <Route path="/settings" element={<Layout><Settings /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
