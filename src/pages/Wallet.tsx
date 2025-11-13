@@ -27,6 +27,7 @@ const Wallet = () => {
   const [networkName, setNetworkName] = useState<string>("");
   const [hideBalance, setHideBalance] = useState(false);
   const [connectionMethod, setConnectionMethod] = useState<"walletconnect" | "metamask" | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
   
   // Mock tokens data with auto-update
   const [tokens, setTokens] = useState([
@@ -112,13 +113,20 @@ const Wallet = () => {
   };
 
   const handleConnectMetaMask = async () => {
+    if (isConnecting) {
+      toast.info("Đang kết nối, vui lòng đợi...");
+      return;
+    }
+
     try {
+      setIsConnecting(true);
       // Check if MetaMask is installed
       const ethereum = (window as any).ethereum;
       
       if (typeof ethereum === "undefined") {
         toast.error("Vui lòng cài đặt MetaMask!");
         window.open("https://metamask.io/download/", "_blank");
+        setIsConnecting(false);
         return;
       }
 
@@ -129,6 +137,7 @@ const Wallet = () => {
       
       if (accounts.length === 0) {
         toast.error("Không tìm thấy tài khoản!");
+        setIsConnecting(false);
         return;
       }
 
@@ -175,9 +184,13 @@ const Wallet = () => {
       console.error("MetaMask connection error:", error);
       if (error.code === 4001) {
         toast.error("Bạn đã từ chối kết nối!");
+      } else if (error.code === -32002) {
+        toast.warning("Vui lòng kiểm tra cửa sổ MetaMask đang chờ phê duyệt!");
       } else {
         toast.error("Không thể kết nối MetaMask!");
       }
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -353,9 +366,10 @@ const Wallet = () => {
               <Button
                 onClick={handleConnectMetaMask}
                 className="w-full bg-gradient-to-r from-warning to-chart-2 hover:from-warning/90 hover:to-chart-2/90 gap-2 h-12 text-base font-semibold shadow-xl"
+                disabled={isConnecting}
               >
                 <Wallet2 className="h-5 w-5" />
-                Kết nối MetaMask
+                {isConnecting ? "Đang kết nối..." : "Kết nối MetaMask"}
               </Button>
               
               <Button
