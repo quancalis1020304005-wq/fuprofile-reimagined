@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink } from "lucide-react";
+import { Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, RefreshCw } from "lucide-react";
 import WalletConnect from "@walletconnect/client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
+import { ethers } from "ethers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -20,6 +21,62 @@ const Wallet = () => {
   const [showReceiveDialog, setShowReceiveDialog] = useState(false);
   const [connector, setConnector] = useState<WalletConnect | null>(null);
   const [chainId, setChainId] = useState<number>(0);
+  const [isLoadingBalance, setIsLoadingBalance] = useState(false);
+  const [networkName, setNetworkName] = useState<string>("");
+
+  const getNetworkName = (chainId: number): string => {
+    const networks: { [key: number]: string } = {
+      1: "Ethereum Mainnet",
+      56: "BSC Mainnet",
+      137: "Polygon",
+      43114: "Avalanche",
+      250: "Fantom",
+      42161: "Arbitrum",
+      10: "Optimism",
+      8453: "Base",
+    };
+    return networks[chainId] || `Chain ID: ${chainId}`;
+  };
+
+  const getRpcUrl = (chainId: number): string => {
+    const rpcUrls: { [key: number]: string } = {
+      1: "https://eth.llamarpc.com",
+      56: "https://bsc-dataseed.binance.org",
+      137: "https://polygon-rpc.com",
+      43114: "https://api.avax.network/ext/bc/C/rpc",
+      250: "https://rpc.ftm.tools",
+      42161: "https://arb1.arbitrum.io/rpc",
+      10: "https://mainnet.optimism.io",
+      8453: "https://mainnet.base.org",
+    };
+    return rpcUrls[chainId] || "";
+  };
+
+  const fetchBalance = async (address: string, chain: number) => {
+    try {
+      setIsLoadingBalance(true);
+      const rpcUrl = getRpcUrl(chain);
+      
+      if (!rpcUrl) {
+        console.error("Unsupported network");
+        toast.error("Mạng không được hỗ trợ!");
+        return;
+      }
+
+      const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+      const balanceWei = await provider.getBalance(address);
+      const balanceEth = parseFloat(ethers.utils.formatEther(balanceWei));
+      
+      setBalance(balanceEth);
+      setNetworkName(getNetworkName(chain));
+      console.log(`Balance fetched: ${balanceEth} for ${getNetworkName(chain)}`);
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+      toast.error("Không thể lấy số dư!");
+    } finally {
+      setIsLoadingBalance(false);
+    }
+  };
 
   const handleConnectWallet = async () => {
     try {
@@ -35,15 +92,15 @@ const Wallet = () => {
         const { chainId: connectedChainId, accounts } = walletConnector;
         setWalletAddress(accounts[0]);
         setChainId(connectedChainId);
-        setBalance(1250.50); // You can fetch real balance here
         setIsConnected(true);
+        await fetchBalance(accounts[0], connectedChainId);
         toast.success("Đã kết nối ví BiggetWallet thành công!");
       }
 
       setConnector(walletConnector);
 
       // Setup event listeners
-      walletConnector.on("connect", (error, payload) => {
+      walletConnector.on("connect", async (error, payload) => {
         if (error) {
           console.error("Connection error:", error);
           toast.error("Lỗi kết nối ví!");
@@ -52,9 +109,21 @@ const Wallet = () => {
         const { accounts, chainId: connectedChainId } = payload.params[0];
         setWalletAddress(accounts[0]);
         setChainId(connectedChainId);
-        setBalance(1250.50); // You can fetch real balance here
         setIsConnected(true);
+        await fetchBalance(accounts[0], connectedChainId);
         toast.success("Đã kết nối ví BiggetWallet thành công!");
+      });
+
+      walletConnector.on("session_update", async (error, payload) => {
+        if (error) {
+          console.error("Session update error:", error);
+          return;
+        }
+        const { accounts, chainId: connectedChainId } = payload.params[0];
+        setWalletAddress(accounts[0]);
+        setChainId(connectedChainId);
+        await fetchBalance(accounts[0], connectedChainId);
+        toast.info("Đã cập nhật phiên!");
       });
 
       walletConnector.on("disconnect", (error) => {
@@ -64,11 +133,19 @@ const Wallet = () => {
         setIsConnected(false);
         setWalletAddress("");
         setBalance(0);
+        setNetworkName("");
         toast.info("Đã ngắt kết nối ví!");
       });
     } catch (error) {
       console.error("WalletConnect error:", error);
       toast.error("Không thể kết nối ví!");
+    }
+  };
+
+  const handleRefreshBalance = async () => {
+    if (walletAddress && chainId) {
+      await fetchBalance(walletAddress, chainId);
+      toast.success("Đã cập nhật số dư!");
     }
   };
 
@@ -180,9 +257,30 @@ const Wallet = () => {
               </div>
               
               <div className="text-center space-y-2">
-                <p className="text-sm text-muted-foreground">Số dư khả dụng</p>
-                <p className="text-4xl font-bold text-foreground">
-                  ${balance.toLocaleString()}
+                <div className="flex items-center justify-center gap-2">
+                  <p className="text-sm text-muted-foreground">Số dư khả dụng</p>
+                  {networkName && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                      {networkName}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <p className="text-4xl font-bold text-foreground">
+                    {isLoadingBalance ? "..." : balance.toFixed(6)}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleRefreshBalance}
+                    disabled={isLoadingBalance}
+                    className="h-8 w-8"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isLoadingBalance ? "animate-spin" : ""}`} />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {networkName ? "Native token balance" : ""}
                 </p>
               </div>
 
