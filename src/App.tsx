@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import Index from "./pages/Index";
 import Feed from "./pages/Feed";
+import Friends from "./pages/Friends";
+import Groups from "./pages/Groups";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,8 +21,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/feed" element={<Layout><Feed /></Layout>} />
-          <Route path="/friends" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang bạn bè đang được phát triển</div></Layout>} />
-          <Route path="/groups" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang nhóm đang được phát triển</div></Layout>} />
+          <Route path="/friends" element={<Layout><Friends /></Layout>} />
+          <Route path="/groups" element={<Layout><Groups /></Layout>} />
           <Route path="/marketplace" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang marketplace đang được phát triển</div></Layout>} />
           <Route path="/wallet" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang ví đang được phát triển</div></Layout>} />
           <Route path="/settings" element={<Layout><div className="p-8 text-center text-muted-foreground">Trang cài đặt đang được phát triển</div></Layout>} />
