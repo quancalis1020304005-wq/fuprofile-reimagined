@@ -17,62 +17,7 @@ interface MiniGame {
 
 const GamePlay = () => {
   const [happyCamlyCoin, setHappyCamlyCoin] = useState(0);
-  const [games, setGames] = useState<MiniGame[]>([
-    {
-      id: "1",
-      name: "Memory Match",
-      description: "Lật thẻ và tìm các cặp giống nhau",
-      reward: 50,
-      difficulty: "Dễ",
-      icon: Star,
-      played: false,
-    },
-    {
-      id: "2",
-      name: "Quick Click",
-      description: "Nhấp nhanh vào các mục tiêu xuất hiện",
-      reward: 75,
-      difficulty: "Trung bình",
-      icon: Gamepad2,
-      played: false,
-    },
-    {
-      id: "3",
-      name: "Puzzle Master",
-      description: "Giải đố logic và hoàn thành câu đố",
-      reward: 100,
-      difficulty: "Khó",
-      icon: Trophy,
-      played: false,
-    },
-    {
-      id: "4",
-      name: "Color Rush",
-      description: "Nhận diện màu sắc nhanh nhất có thể",
-      reward: 60,
-      difficulty: "Dễ",
-      icon: Star,
-      played: false,
-    },
-    {
-      id: "5",
-      name: "Word Hunt",
-      description: "Tìm từ ẩn trong lưới chữ cái",
-      reward: 80,
-      difficulty: "Trung bình",
-      icon: Gamepad2,
-      played: false,
-    },
-    {
-      id: "6",
-      name: "Number Challenge",
-      description: "Giải toán nhanh và chính xác",
-      reward: 120,
-      difficulty: "Khó",
-      icon: Trophy,
-      played: false,
-    },
-  ]);
+  const [games, setGames] = useState<MiniGame[]>([]);
 
   const handlePlayGame = (gameId: string) => {
     const game = games.find((g) => g.id === gameId);
