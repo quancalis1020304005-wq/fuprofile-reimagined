@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, Share2, MoreHorizontal } from "lucide-react";
+import { Heart, MessageCircle, Share2, MoreHorizontal, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -65,6 +65,11 @@ export const PostCard = ({ author, avatar, timeAgo, content, images, likes, comm
                     controls
                     className="w-full h-auto object-cover max-h-[500px]"
                   />
+                ) : media.type === 'audio' ? (
+                  <div className="w-full bg-muted/30 rounded-lg p-6 flex flex-col items-center gap-4">
+                    <Music className="h-16 w-16 text-primary" />
+                    <audio src={media.url} controls className="w-full max-w-md" />
+                  </div>
                 ) : (
                   <img 
                     src={media.url}
