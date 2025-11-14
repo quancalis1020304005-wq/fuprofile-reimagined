@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/Layout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Feed from "./pages/Feed";
 import Friends from "./pages/Friends";
@@ -26,15 +27,15 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/feed" element={<Layout><Feed /></Layout>} />
-          <Route path="/friends" element={<Layout><Friends /></Layout>} />
-          <Route path="/groups" element={<Layout><Groups /></Layout>} />
-          <Route path="/marketplace" element={<Layout><Marketplace /></Layout>} />
-          <Route path="/wallet" element={<Layout><Wallet /></Layout>} />
-          <Route path="/gameplay" element={<Layout><GamePlay /></Layout>} />
-          <Route path="/memory-game" element={<Layout><MemoryGame /></Layout>} />
-          <Route path="/settings" element={<Layout><Settings /></Layout>} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/feed" element={<ProtectedRoute><Layout><Feed /></Layout></ProtectedRoute>} />
+          <Route path="/friends" element={<ProtectedRoute><Layout><Friends /></Layout></ProtectedRoute>} />
+          <Route path="/groups" element={<ProtectedRoute><Layout><Groups /></Layout></ProtectedRoute>} />
+          <Route path="/marketplace" element={<ProtectedRoute><Layout><Marketplace /></Layout></ProtectedRoute>} />
+          <Route path="/wallet" element={<ProtectedRoute><Layout><Wallet /></Layout></ProtectedRoute>} />
+          <Route path="/gameplay" element={<ProtectedRoute><Layout><GamePlay /></Layout></ProtectedRoute>} />
+          <Route path="/memory-game" element={<ProtectedRoute><Layout><MemoryGame /></Layout></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

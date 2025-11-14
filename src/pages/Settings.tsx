@@ -11,6 +11,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const profileSchema = z.object({
+  username: z.string().min(3, "Tên người dùng phải có ít nhất 3 ký tự").max(30, "Tên người dùng quá dài").regex(/^[a-zA-Z0-9_]+$/, "Tên người dùng chỉ được chứa chữ, số và dấu gạch dưới"),
+  bio: z.string().max(500, "Giới thiệu không được vượt quá 500 ký tự"),
+  fullName: z.string().min(1, "Vui lòng nhập họ tên").max(100, "Họ tên quá dài").trim(),
+});
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -69,6 +76,18 @@ const Settings = () => {
   });
 
   const handleSaveProfile = async () => {
+    // Validate input
+    const result = profileSchema.safeParse({
+      username: profile.username,
+      bio: profile.bio,
+      fullName: profile.fullName,
+    });
+
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       

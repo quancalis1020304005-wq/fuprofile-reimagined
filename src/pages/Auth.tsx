@@ -7,6 +7,19 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { User } from "lucide-react";
+import { z } from "zod";
+
+const signupSchema = z.object({
+  email: z.string().email("Email không hợp lệ").max(255, "Email quá dài"),
+  password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự").max(72, "Mật khẩu quá dài"),
+  username: z.string().min(3, "Tên người dùng phải có ít nhất 3 ký tự").max(30, "Tên người dùng quá dài").regex(/^[a-zA-Z0-9_]+$/, "Tên người dùng chỉ được chứa chữ, số và dấu gạch dưới"),
+  fullName: z.string().min(1, "Vui lòng nhập họ tên").max(100, "Họ tên quá dài").trim(),
+});
+
+const loginSchema = z.object({
+  email: z.string().email("Email không hợp lệ").max(255, "Email quá dài"),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự").max(72, "Mật khẩu quá dài"),
+});
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -37,6 +50,14 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -63,6 +84,14 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input
+    const result = signupSchema.safeParse({ email, password, username, fullName });
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -74,7 +103,7 @@ const Auth = () => {
             full_name: fullName,
             username: username,
           },
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/feed`,
         },
       });
 

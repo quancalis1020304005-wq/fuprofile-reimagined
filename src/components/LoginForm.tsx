@@ -5,25 +5,71 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.string().email("Email không hợp lệ").max(255, "Email quá dài"),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự").max(72, "Mật khẩu quá dài"),
+});
 
 export const LoginForm = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error("Vui lòng điền đầy đủ thông tin");
+    
+    // Validate input
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
       return;
     }
-    toast.success("Đăng nhập thành công!");
-    setTimeout(() => navigate("/feed"), 500);
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("Email hoặc mật khẩu không đúng");
+        } else {
+          toast.error(error.message);
+        }
+        return;
+      }
+
+      toast.success("Đăng nhập thành công!");
+      navigate("/feed");
+    } catch (error) {
+      toast.error("Đã xảy ra lỗi. Vui lòng thử lại");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    toast.info(`Đăng nhập với ${provider}`);
+  const handleSocialLogin = async (provider: "google" | "facebook" | "apple") => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: provider as any,
+        options: {
+          redirectTo: `${window.location.origin}/feed`,
+        },
+      });
+
+      if (error) {
+        toast.error(`Không thể đăng nhập với ${provider}`);
+      }
+    } catch (error) {
+      toast.error("Đã xảy ra lỗi khi đăng nhập");
+    }
   };
 
   return (
@@ -71,8 +117,12 @@ export const LoginForm = () => {
         </a>
       </div>
 
-      <Button type="submit" className="w-full h-11 bg-primary hover:bg-accent text-primary-foreground font-medium">
-        Đăng nhập
+      <Button 
+        type="submit" 
+        disabled={loading}
+        className="w-full h-11 bg-primary hover:bg-accent text-primary-foreground font-medium"
+      >
+        {loading ? "Đang đăng nhập..." : "Đăng nhập"}
       </Button>
 
       <div className="relative">
@@ -89,7 +139,7 @@ export const LoginForm = () => {
           type="button"
           variant="outline"
           className="w-full h-11 border-border hover:bg-muted"
-          onClick={() => handleSocialLogin("Google")}
+          onClick={() => handleSocialLogin("google")}
         >
           <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
             <path
@@ -116,7 +166,7 @@ export const LoginForm = () => {
           type="button"
           variant="outline"
           className="w-full h-11 border-border hover:bg-muted"
-          onClick={() => handleSocialLogin("Facebook")}
+          onClick={() => handleSocialLogin("facebook")}
         >
           <svg className="mr-2 h-5 w-5" fill="#1877F2" viewBox="0 0 24 24">
             <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -128,7 +178,7 @@ export const LoginForm = () => {
           type="button"
           variant="outline"
           className="w-full h-11 border-border hover:bg-muted"
-          onClick={() => handleSocialLogin("Apple")}
+          onClick={() => handleSocialLogin("apple")}
         >
           <svg className="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
@@ -139,7 +189,7 @@ export const LoginForm = () => {
 
       <div className="text-center text-sm">
         <span className="text-muted-foreground">Chưa có tài khoản? </span>
-        <a href="#" className="text-primary hover:text-accent font-medium transition-colors">
+        <a href="/auth" className="text-primary hover:text-accent font-medium transition-colors">
           Đăng ký ngay
         </a>
       </div>
