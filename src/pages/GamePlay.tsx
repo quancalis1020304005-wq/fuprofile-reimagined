@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Gamepad2, Trophy, Play, Star, Coins } from "lucide-react";
+import { Gamepad2, Trophy, Play, Star, Coins, Brain } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface MiniGame {
   id: string;
@@ -16,6 +17,7 @@ interface MiniGame {
 }
 
 const GamePlay = () => {
+  const navigate = useNavigate();
   const [happyCamlyCoin, setHappyCamlyCoin] = useState(0);
   const [games, setGames] = useState<MiniGame[]>([]);
 
@@ -82,8 +84,72 @@ const GamePlay = () => {
         </div>
       </div>
 
-      {/* Games Grid */}
+      {/* Featured Game - Memory Game */}
       <div className="container mx-auto px-6 py-8">
+        <Card className="bg-gradient-to-br from-primary/10 via-accent/10 to-success/10 border-2 border-primary/30 hover:border-primary/50 transition-all duration-300 mb-8 overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl" />
+          <CardHeader className="relative z-10">
+            <div className="flex items-start justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
+                  <Brain className="h-8 w-8 text-primary-foreground" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <CardTitle className="text-2xl">Truy tìm Happy CamlyCoin</CardTitle>
+                    <Badge className="bg-gradient-to-r from-primary to-accent text-primary-foreground border-0">
+                      ⭐ Nổi bật
+                    </Badge>
+                  </div>
+                  <CardDescription className="text-base">
+                    Trò chơi lật thẻ trí nhớ - Đấu với Bot thông minh
+                  </CardDescription>
+                </div>
+              </div>
+              <Button 
+                size="lg"
+                onClick={() => navigate("/memory-game")}
+                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground shadow-lg"
+              >
+                <Play className="h-5 w-5 mr-2" />
+                Chơi ngay
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
+                  <Trophy className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">10 vòng đấu</p>
+                  <p className="text-xs text-muted-foreground">Thắng nhiều vòng nhất</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center">
+                  <span className="text-xl">🍎</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">20 thẻ trái cây</p>
+                  <p className="text-xs text-muted-foreground">Lật cặp giống nhau</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-success/20 rounded-lg flex items-center justify-center">
+                  <span className="text-xl">❤️</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">5 máu</p>
+                  <p className="text-xs text-muted-foreground">Hồi sau 3 giờ</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-foreground mb-2">
             Mini Games

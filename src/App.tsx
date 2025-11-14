@@ -11,6 +11,7 @@ import Groups from "./pages/Groups";
 import Marketplace from "./pages/Marketplace";
 import Wallet from "./pages/Wallet";
 import GamePlay from "./pages/GamePlay";
+import MemoryGame from "./pages/MemoryGame";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/marketplace" element={<Layout><Marketplace /></Layout>} />
           <Route path="/wallet" element={<Layout><Wallet /></Layout>} />
           <Route path="/gameplay" element={<Layout><GamePlay /></Layout>} />
+          <Route path="/memory-game" element={<Layout><MemoryGame /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
           <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
