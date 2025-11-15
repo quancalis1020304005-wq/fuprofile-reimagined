@@ -5,6 +5,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Reply, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const commentSchema = z.object({
+  content: z.string().max(1000, 'Comment must be less than 1000 characters')
+});
 
 interface Comment {
   id: string;
@@ -39,6 +44,13 @@ export const CommentItem = ({ comment, postId, currentUserId, onReplyAdded }: Co
 
   const handleReply = async () => {
     if (!replyContent.trim() || !currentUserId) return;
+
+    // Validate reply length
+    const validation = commentSchema.safeParse({ content: replyContent.trim() });
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -126,13 +138,18 @@ export const CommentItem = ({ comment, postId, currentUserId, onReplyAdded }: Co
 
       {showReplyInput && (
         <div className="ml-10 space-y-2">
-          <Textarea
-            placeholder="Viết câu trả lời..."
-            value={replyContent}
-            onChange={(e) => setReplyContent(e.target.value)}
-            className="min-h-[60px] resize-none"
-            disabled={isSubmitting}
-          />
+          <div className="space-y-1">
+            <Textarea
+              placeholder="Viết câu trả lời..."
+              value={replyContent}
+              onChange={(e) => setReplyContent(e.target.value)}
+              className="min-h-[60px] resize-none"
+              disabled={isSubmitting}
+            />
+            <div className="text-xs text-muted-foreground">
+              {replyContent.length}/1000 ký tự
+            </div>
+          </div>
           <div className="flex gap-2 justify-end">
             <Button
               variant="ghost"

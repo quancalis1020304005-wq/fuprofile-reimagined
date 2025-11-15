@@ -5,6 +5,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const postSchema = z.object({
+  content: z.string().max(5000, 'Post content must be less than 5000 characters')
+});
 
 export const CreatePost = () => {
   const [content, setContent] = useState("");
@@ -48,6 +53,15 @@ export const CreatePost = () => {
     if (!content.trim() && mediaFiles.length === 0) {
       toast.error("Vui lòng nhập nội dung hoặc thêm ảnh/video");
       return;
+    }
+
+    // Validate content length
+    if (content.trim()) {
+      const validation = postSchema.safeParse({ content: content.trim() });
+      if (!validation.success) {
+        toast.error(validation.error.errors[0].message);
+        return;
+      }
     }
 
     setIsPosting(true);
@@ -115,13 +129,18 @@ export const CreatePost = () => {
   return (
     <Card className="border-border">
       <CardContent className="pt-4">
-        <Textarea
-          placeholder="Bạn đang nghĩ gì?"
-          className="min-h-[100px] resize-none border-border bg-muted/30 mb-4"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          disabled={isPosting}
-        />
+        <div className="space-y-1 mb-4">
+          <Textarea
+            placeholder="Bạn đang nghĩ gì?"
+            className="min-h-[100px] resize-none border-border bg-muted/30"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            disabled={isPosting}
+          />
+          <div className="text-xs text-muted-foreground px-1">
+            {content.length}/5000 ký tự
+          </div>
+        </div>
 
         {/* Media Preview */}
         {mediaPreview.length > 0 && (

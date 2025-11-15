@@ -5,6 +5,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CommentItem } from "./CommentItem";
+import { z } from "zod";
+
+const commentSchema = z.object({
+  content: z.string().max(1000, 'Comment must be less than 1000 characters')
+});
 
 interface CommentSectionProps {
   postId: string;
@@ -86,6 +91,13 @@ export const CommentSection = ({ postId, initialCommentCount }: CommentSectionPr
       return;
     }
 
+    // Validate comment length
+    const validation = commentSchema.safeParse({ content: newComment.trim() });
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const { error } = (await supabase
@@ -148,22 +160,27 @@ export const CommentSection = ({ postId, initialCommentCount }: CommentSectionPr
       {showComments && (
         <div className="space-y-3">
           {/* Comment input */}
-          <div className="flex gap-2">
-            <Textarea
-              placeholder="Viết bình luận..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              className="min-h-[80px] resize-none flex-1"
-              disabled={isSubmitting}
-            />
-            <Button
-              size="icon"
-              onClick={handleSubmit}
-              disabled={!newComment.trim() || isSubmitting}
-              className="h-10 w-10 flex-shrink-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+          <div className="space-y-1">
+            <div className="flex gap-2">
+              <Textarea
+                placeholder="Viết bình luận..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                className="min-h-[80px] resize-none flex-1"
+                disabled={isSubmitting}
+              />
+              <Button
+                size="icon"
+                onClick={handleSubmit}
+                disabled={!newComment.trim() || isSubmitting}
+                className="h-10 w-10 flex-shrink-0"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {newComment.length}/1000 ký tự
+            </div>
           </div>
 
           {/* Comments list */}
