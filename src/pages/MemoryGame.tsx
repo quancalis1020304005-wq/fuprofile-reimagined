@@ -5,9 +5,9 @@ import { toast } from "sonner";
 import { Heart, Trophy, RotateCcw } from "lucide-react";
 
 const FRUITS = ["🍎", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🍑", "🍒", "🥝"];
-const MAX_LIVES = 5;
+const MAX_LIVES = 1;
 const LIFE_RESPAWN_DELAY = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
-const MAX_ROUNDS = 10;
+const MAX_ROUNDS = 5;
 const CARDS_COUNT = 20;
 
 interface CardType {
@@ -71,7 +71,7 @@ const MemoryGame = () => {
   // Initialize game
   const initializeGame = () => {
     if (gameStats.lives <= 0) {
-      toast.error("Bạn đã thua đủ 5 máu — quay lại sau 3 giờ để có lại 5 máu");
+      toast.error("Bạn đã thua — quay lại sau 3 giờ để có lại 1 máu");
       return;
     }
 
