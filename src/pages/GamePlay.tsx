@@ -86,31 +86,36 @@ const GamePlay = () => {
 
       {/* Featured Game - Memory Game */}
       <div className="container mx-auto px-6 py-8">
-        <Card className="bg-gradient-to-br from-primary/10 via-accent/10 to-success/10 border-2 border-primary/30 hover:border-primary/50 transition-all duration-300 mb-8 overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl" />
+        <Card className="bg-gradient-to-br from-primary/15 via-accent/10 to-success/15 border-2 border-primary/40 hover:border-primary/60 transition-all duration-500 mb-8 overflow-hidden hover:shadow-2xl hover:scale-[1.01] group">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-accent/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-8xl opacity-5">
+            🍎🍊🍋
+          </div>
           <CardHeader className="relative z-10">
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg">
-                  <Brain className="h-8 w-8 text-primary-foreground" />
+                <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <span className="text-3xl">🧠</span>
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <CardTitle className="text-2xl">Truy tìm Happy CamlyCoin</CardTitle>
-                    <Badge className="bg-gradient-to-r from-primary to-accent text-primary-foreground border-0">
+                    <CardTitle className="text-2xl bg-gradient-to-r from-primary via-accent to-success bg-clip-text text-transparent">
+                      Truy tìm Happy CamlyCoin
+                    </CardTitle>
+                    <Badge className="bg-gradient-to-r from-primary to-accent text-primary-foreground border-0 animate-pulse">
                       ⭐ Nổi bật
                     </Badge>
                   </div>
-                  <CardDescription className="text-base">
-                    Trò chơi lật thẻ trí nhớ - Đấu với Bot thông minh
+                  <CardDescription className="text-base font-medium">
+                    🍎 Lật thẻ trái cây - Đấu với Bot Doraemon & Friends 🤖
                   </CardDescription>
                 </div>
               </div>
               <Button 
                 size="lg"
                 onClick={() => navigate("/memory-game")}
-                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground shadow-lg"
+                className="bg-gradient-to-r from-primary via-accent to-success hover:from-primary/90 hover:via-accent/90 hover:to-success/90 text-primary-foreground shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
               >
                 <Play className="h-5 w-5 mr-2" />
                 Chơi ngay
@@ -118,17 +123,17 @@ const GamePlay = () => {
             </div>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="flex items-center gap-3 bg-card/50 backdrop-blur-sm rounded-lg p-3 border border-primary/20">
                 <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
                   <Trophy className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">10 vòng đấu</p>
-                  <p className="text-xs text-muted-foreground">Thắng nhiều vòng nhất</p>
+                  <p className="text-sm font-medium">5 ván đấu</p>
+                  <p className="text-xs text-muted-foreground">Thắng nhiều nhất</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 bg-card/50 backdrop-blur-sm rounded-lg p-3 border border-accent/20">
                 <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center">
                   <span className="text-xl">🍎</span>
                 </div>
@@ -137,13 +142,38 @@ const GamePlay = () => {
                   <p className="text-xs text-muted-foreground">Lật cặp giống nhau</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-success/20 rounded-lg flex items-center justify-center">
+              <div className="flex items-center gap-3 bg-card/50 backdrop-blur-sm rounded-lg p-3 border border-destructive/20">
+                <div className="w-10 h-10 bg-destructive/20 rounded-lg flex items-center justify-center">
                   <span className="text-xl">❤️</span>
                 </div>
                 <div>
-                  <p className="text-sm font-medium">5 máu</p>
+                  <p className="text-sm font-medium">1 máu</p>
                   <p className="text-xs text-muted-foreground">Hồi sau 3 giờ</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-card/50 backdrop-blur-sm rounded-lg p-3 border border-success/20">
+                <div className="w-10 h-10 bg-success/20 rounded-lg flex items-center justify-center">
+                  <span className="text-xl">🤖</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">5 nhân vật bot</p>
+                  <p className="text-xs text-muted-foreground">Doraemon & Friends</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Additional game features */}
+            <div className="mt-6 p-4 bg-gradient-to-r from-primary/5 via-accent/5 to-success/5 rounded-lg border border-primary/20">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">🪙</span>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-sm mb-1">Phần thưởng đặc biệt</h4>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Thắng 5 ván liên tiếp → Nhận CamlyCoin xoay phát sáng ✨</li>
+                    <li>• NPC xuất hiện trao thưởng 5,000-10,000 điểm 🎁</li>
+                    <li>• Chọn 2 đáp án khác nhau → Nhận chìa khóa bí mật 🔑</li>
+                    <li>• Bot ngày càng khó sau mỗi ván thắng 📈</li>
+                  </ul>
                 </div>
               </div>
             </div>
