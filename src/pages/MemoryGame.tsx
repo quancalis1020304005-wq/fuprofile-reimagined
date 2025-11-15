@@ -2,13 +2,18 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Heart, Trophy, RotateCcw } from "lucide-react";
+import { Heart, Trophy, RotateCcw, Key, Coins } from "lucide-react";
+import { BotAvatar } from "@/components/BotAvatar";
+import { CoinReward } from "@/components/CoinReward";
+import { NPCDialog } from "@/components/NPCDialog";
 
 const FRUITS = ["🍎", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🍑", "🍒", "🥝"];
 const MAX_LIVES = 1;
 const LIFE_RESPAWN_DELAY = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
 const MAX_ROUNDS = 5;
 const CARDS_COUNT = 20;
+const BOT_CHARACTERS = ["Doraemon", "Nobita", "Shizuka", "Suneo", "Gian"];
+const REQUIRED_STREAK = 5;
 
 interface CardType {
   id: number;
@@ -26,6 +31,12 @@ interface GameStats {
   currentRound: number;
   playerRoundWins: number;
   botRoundWins: number;
+  consecutiveWins: number;
+  totalPoints: number;
+  botCharacterIndex: number;
+  difficultyLevel: number;
+  npcChoices: ("accept" | "decline")[];
+  hasReceivedKey: boolean;
 }
 
 const MemoryGame = () => {
@@ -41,8 +52,17 @@ const MemoryGame = () => {
     currentRound: 1,
     playerRoundWins: 0,
     botRoundWins: 0,
+    consecutiveWins: 0,
+    totalPoints: 0,
+    botCharacterIndex: 0,
+    difficultyLevel: 1,
+    npcChoices: [],
+    hasReceivedKey: false,
   });
   const [isGameActive, setIsGameActive] = useState(false);
+  const [showCoinReward, setShowCoinReward] = useState(false);
+  const [showNPCDialog, setShowNPCDialog] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Load game stats from localStorage
   useEffect(() => {
@@ -176,7 +196,7 @@ const MemoryGame = () => {
     }
   };
 
-  // Bot's turn
+  // Bot's turn with difficulty scaling
   const botTurn = () => {
     if (!isGameActive) return;
     
@@ -191,8 +211,9 @@ const MemoryGame = () => {
       return;
     }
 
-    // Normal difficulty: 30% chance to remember and match, 70% random
-    const shouldMatch = Math.random() < 0.3;
+    // Difficulty scaling: level 1=30%, 2=40%, 3=50%, 4=60%, 5=70%
+    const matchChance = 0.2 + (gameStats.difficultyLevel * 0.1);
+    const shouldMatch = Math.random() < matchChance;
     let botCards: CardType[] = [];
 
     if (shouldMatch) {
@@ -241,14 +262,28 @@ const MemoryGame = () => {
     const playerWon = gameStats.playerScore > gameStats.botScore;
     const isTie = gameStats.playerScore === gameStats.botScore;
 
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 1200);
+
     if (isTie) {
       toast.info(`Ván ${gameStats.currentRound} hòa! ${gameStats.playerScore} - ${gameStats.botScore}`);
+      setGameStats(prev => ({ ...prev, consecutiveWins: 0 }));
     } else if (playerWon) {
+      const newConsecutiveWins = gameStats.consecutiveWins + 1;
       toast.success(`Bạn thắng ván ${gameStats.currentRound}! ${gameStats.playerScore} - ${gameStats.botScore}`);
+      
       setGameStats(prev => ({
         ...prev,
         playerRoundWins: prev.playerRoundWins + 1,
+        consecutiveWins: newConsecutiveWins,
+        botCharacterIndex: (prev.botCharacterIndex + 1) % BOT_CHARACTERS.length,
+        difficultyLevel: Math.min(5, prev.difficultyLevel + 1),
       }));
+
+      // Check for 5-win streak reward
+      if (newConsecutiveWins === REQUIRED_STREAK) {
+        setTimeout(() => setShowCoinReward(true), 1500);
+      }
     } else {
       toast.error(`Bot thắng ván ${gameStats.currentRound}! ${gameStats.playerScore} - ${gameStats.botScore}`);
       setGameStats(prev => ({
@@ -256,6 +291,7 @@ const MemoryGame = () => {
         botRoundWins: prev.botRoundWins + 1,
         lives: prev.lives - 1,
         lastLifeLostTime: Date.now(),
+        consecutiveWins: 0,
       }));
     }
 
@@ -297,10 +333,80 @@ const MemoryGame = () => {
       currentRound: 1,
       playerRoundWins: 0,
       botRoundWins: 0,
+      consecutiveWins: 0,
+      totalPoints: 0,
+      botCharacterIndex: 0,
+      difficultyLevel: 1,
+      npcChoices: [],
+      hasReceivedKey: false,
     });
     setIsGameActive(false);
     setCards([]);
     toast.success("Game đã được reset!");
+  };
+
+  const handleCoinRewardShow = () => {
+    // Animation complete, ready for NPC
+  };
+
+  const handleCoinRewardAccept = () => {
+    setShowCoinReward(false);
+    setShowNPCDialog(true);
+  };
+
+  const handleNPCAccept = () => {
+    const newChoice: "accept" | "decline" = "accept";
+    const updatedChoices: ("accept" | "decline")[] = [...gameStats.npcChoices, newChoice];
+    const points = 10000;
+    
+    setGameStats(prev => ({
+      ...prev,
+      totalPoints: prev.totalPoints + points,
+      npcChoices: updatedChoices,
+      consecutiveWins: 0,
+    }));
+
+    // Check for key reward
+    checkForKeyReward(updatedChoices);
+    
+    toast.success(`Bạn đã nhận ${points.toLocaleString()} điểm!`);
+    setShowNPCDialog(false);
+  };
+
+  const handleNPCDecline = () => {
+    const newChoice: "accept" | "decline" = "decline";
+    const updatedChoices: ("accept" | "decline")[] = [...gameStats.npcChoices, newChoice];
+    const points = 5000;
+    
+    setGameStats(prev => ({
+      ...prev,
+      totalPoints: prev.totalPoints + points,
+      npcChoices: updatedChoices,
+      consecutiveWins: 0,
+    }));
+
+    // Check for key reward
+    checkForKeyReward(updatedChoices);
+    
+    toast.success(`OK — bạn nhận ${points.toLocaleString()} điểm.`);
+    setShowNPCDialog(false);
+  };
+
+  const checkForKeyReward = (choices: ("accept" | "decline")[]) => {
+    if (gameStats.hasReceivedKey) return;
+    
+    // Check if there are at least 2 choices and they are different
+    if (choices.length >= 2) {
+      const hasAccept = choices.includes("accept");
+      const hasDecline = choices.includes("decline");
+      
+      if (hasAccept && hasDecline) {
+        setGameStats(prev => ({ ...prev, hasReceivedKey: true }));
+        toast.success("🔑 Bạn đã nhận chìa khóa bí mật! Mở khóa cấp độ tương lai.", {
+          duration: 5000,
+        });
+      }
+    }
   };
 
   // Calculate time until lives respawn
@@ -332,7 +438,7 @@ const MemoryGame = () => {
         </div>
 
         {/* Stats Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
           <Card className="p-4 flex items-center gap-3">
             <Heart className="h-6 w-6 text-red-500" />
             <div>
@@ -349,6 +455,7 @@ const MemoryGame = () => {
             <div>
               <div className="text-sm text-muted-foreground">Ván hiện tại</div>
               <div className="text-xl font-bold">{gameStats.currentRound}/{MAX_ROUNDS}</div>
+              <div className="text-xs text-muted-foreground">Liên tiếp: {gameStats.consecutiveWins}</div>
             </div>
           </Card>
 
@@ -359,10 +466,24 @@ const MemoryGame = () => {
           </Card>
 
           <Card className="p-4">
-            <div className="text-sm text-muted-foreground">Bot</div>
-            <div className="text-2xl font-bold text-destructive">{gameStats.botScore}</div>
-            <div className="text-xs text-muted-foreground">Thắng: {gameStats.botRoundWins}</div>
+            <div className="text-sm text-muted-foreground">Điểm</div>
+            <div className="text-2xl font-bold text-yellow-500 flex items-center gap-1">
+              <Coins className="h-5 w-5" />
+              {gameStats.totalPoints.toLocaleString()}
+            </div>
+            {gameStats.hasReceivedKey && (
+              <div className="text-xs text-yellow-500 flex items-center gap-1">
+                <Key className="h-3 w-3" />
+                Có chìa khóa
+              </div>
+            )}
           </Card>
+
+          <BotAvatar 
+            character={BOT_CHARACTERS[gameStats.botCharacterIndex]}
+            isThinking={isBotThinking}
+            difficultyLevel={gameStats.difficultyLevel}
+          />
         </div>
 
         {/* Turn Indicator */}
@@ -378,6 +499,25 @@ const MemoryGame = () => {
           </div>
         )}
 
+        {/* Confetti Effect */}
+        {showConfetti && (
+          <div className="fixed inset-0 pointer-events-none z-40">
+            <div className="confetti-container">
+              {[...Array(50)].map((_, i) => (
+                <div
+                  key={i}
+                  className="confetti"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 1.2}s`,
+                    backgroundColor: ['#ff6b6b', '#4ecdc4', '#ffe66d', '#a8e6cf', '#ff8ed4'][Math.floor(Math.random() * 5)],
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Game Board */}
         {isGameActive ? (
           <div className="grid grid-cols-5 gap-3 mb-6">
@@ -385,15 +525,18 @@ const MemoryGame = () => {
               <Card
                 key={card.id}
                 onClick={() => handleCardClick(card.id)}
-                className={`aspect-square flex items-center justify-center text-4xl cursor-pointer transition-all duration-300 ${
+                className={`aspect-square flex items-center justify-center text-4xl cursor-pointer transition-all duration-700 ${
                   card.isFlipped || card.isMatched
-                    ? card.owner === "player"
+                    ? `animate-card-flip ${card.owner === "player"
                       ? "bg-primary/20 border-primary"
                       : card.owner === "bot"
                       ? "bg-destructive/20 border-destructive"
-                      : "bg-accent/20"
+                      : "bg-accent/20"}`
                     : "bg-card hover:bg-accent/10 hover:scale-105"
                 } ${!isPlayerTurn || isBotThinking ? "cursor-not-allowed opacity-70" : ""}`}
+                style={{
+                  filter: (card.isFlipped || card.isMatched) ? "drop-shadow(0 0 10px currentColor)" : "none",
+                }}
               >
                 {card.isFlipped || card.isMatched ? card.fruit : "🎴"}
               </Card>
@@ -437,10 +580,29 @@ const MemoryGame = () => {
             <li>• Bạn và bot thay phiên nhau chơi</li>
             <li>• Nếu tìm được cặp, bạn được chơi tiếp</li>
             <li>• Bên nào tìm được nhiều cặp hơn sẽ thắng ván</li>
-            <li>• Thắng tối đa trong 10 ván để chiến thắng</li>
+            <li>• Thắng tối đa trong 5 ván để chiến thắng</li>
             <li>• Mất 1 máu mỗi khi thua ván (máu hồi sau 3 giờ)</li>
+            <li>• Thắng 5 ván liên tiếp để nhận CamlyCoin và điểm thưởng!</li>
+            <li>• Bot sẽ khó hơn sau mỗi ván thắng của bạn</li>
+            <li>• Chọn 2 đáp án khác nhau với NPC để nhận chìa khóa bí mật</li>
           </ul>
         </Card>
+
+        {/* Coin Reward Modal */}
+        {showCoinReward && (
+          <CoinReward
+            onAccept={handleCoinRewardAccept}
+            onShow={handleCoinRewardShow}
+          />
+        )}
+
+        {/* NPC Dialog Modal */}
+        {showNPCDialog && (
+          <NPCDialog
+            onAccept={handleNPCAccept}
+            onDecline={handleNPCDecline}
+          />
+        )}
       </div>
     </div>
   );

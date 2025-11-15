@@ -146,3 +146,63 @@ All colors MUST be HSL.
     display: none;
   }
 }
+
+/* Memory Game Animations */
+@keyframes coin-spin {
+  0% {
+    transform: scale(0.2) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1) rotate(3600deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.8) rotate(7200deg);
+    opacity: 1;
+  }
+}
+
+@keyframes card-flip {
+  0% {
+    transform: rotateY(0deg) scale(1);
+  }
+  25% {
+    transform: rotateY(180deg) scale(1.1);
+  }
+  50% {
+    transform: rotateY(360deg) scale(1.2);
+  }
+  75% {
+    transform: rotateY(540deg) scale(1.1);
+  }
+  100% {
+    transform: rotateY(720deg) scale(1);
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.animate-coin-spin {
+  animation: coin-spin 2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.animate-card-flip {
+  animation: card-flip 0.7s ease-in-out;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  animation: confetti-fall 1.2s linear forwards;
+}
