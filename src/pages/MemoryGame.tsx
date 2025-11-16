@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Heart, Trophy, RotateCcw, Key, Coins } from "lucide-react";
+import { Heart, Trophy, Key, Coins } from "lucide-react";
 import { BotAvatar } from "@/components/BotAvatar";
 import { CoinReward } from "@/components/CoinReward";
 import { NPCDialog } from "@/components/NPCDialog";
@@ -552,7 +552,7 @@ const MemoryGame = () => {
         )}
 
         {/* Action Buttons */}
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center">
           <Button
             onClick={initializeGame}
             disabled={gameStats.lives <= 0 || isGameActive}
@@ -560,15 +560,6 @@ const MemoryGame = () => {
             className="min-w-[200px]"
           >
             {isGameActive ? "Đang chơi..." : "Bắt đầu chơi"}
-          </Button>
-          
-          <Button
-            onClick={resetGame}
-            variant="outline"
-            size="lg"
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset Game
           </Button>
         </div>
 
