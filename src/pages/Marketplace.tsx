@@ -241,38 +241,40 @@ const Marketplace = () => {
                 Đăng bán
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Đăng sản phẩm mới</DialogTitle>
-                <DialogDescription>
+                <DialogTitle className="text-lg">Đăng sản phẩm mới</DialogTitle>
+                <DialogDescription className="text-sm">
                   Tạo tin đăng bán sản phẩm của bạn
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Tên sản phẩm</Label>
+              <div className="space-y-3 py-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="title" className="text-sm">Tên sản phẩm</Label>
                   <Input
                     id="title"
                     placeholder="Nhập tên sản phẩm..."
                     value={newProduct.title}
                     onChange={(e) => setNewProduct({...newProduct, title: e.target.value})}
+                    className="h-9"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Giá ($)</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="price" className="text-sm">Giá ($)</Label>
                     <Input
                       id="price"
                       type="number"
                       placeholder="0.00"
                       value={newProduct.price}
                       onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+                      className="h-9"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Danh mục</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="category" className="text-sm">Danh mục</Label>
                     <Select value={newProduct.category} onValueChange={(value) => setNewProduct({...newProduct, category: value})}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -285,68 +287,67 @@ const Marketplace = () => {
                     </Select>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Địa điểm</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="location" className="text-sm">Địa điểm</Label>
                   <Input
                     id="location"
                     placeholder="Nhập địa điểm..."
                     value={newProduct.location}
                     onChange={(e) => setNewProduct({...newProduct, location: e.target.value})}
+                    className="h-9"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Mô tả</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="description" className="text-sm">Mô tả</Label>
                   <Textarea
                     id="description"
                     placeholder="Mô tả chi tiết về sản phẩm..."
                     value={newProduct.description}
                     onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-                    className="resize-none min-h-[120px]"
+                    className="resize-none min-h-[80px] text-sm"
                   />
                 </div>
 
                 {/* Image Upload */}
-                <div className="space-y-2">
-                  <Label>Hình ảnh sản phẩm</Label>
-                  <div className="space-y-2">
-                    {imagePreview ? (
-                      <div className="relative w-full h-48 bg-muted rounded-lg overflow-hidden">
-                        <img 
-                          src={imagePreview} 
-                          alt="Preview" 
-                          className="w-full h-full object-cover"
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2"
-                          onClick={removeImage}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Hình ảnh</Label>
+                  {imagePreview ? (
+                    <div className="relative w-full h-32 bg-muted rounded-lg overflow-hidden">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                      />
                       <Button
                         type="button"
-                        variant="outline"
-                        className="w-full h-32 border-dashed"
-                        onClick={() => document.getElementById('product-image-upload')?.click()}
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-1 right-1 h-7 w-7"
+                        onClick={removeImage}
                       >
-                        <div className="flex flex-col items-center gap-2">
-                          <Image className="h-8 w-8 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Thêm hình ảnh</span>
-                        </div>
+                        <X className="h-3 w-3" />
                       </Button>
-                    )}
-                    <input
-                      id="product-image-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageSelect}
-                    />
-                  </div>
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full h-24 border-dashed"
+                      onClick={() => document.getElementById('product-image-upload')?.click()}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        <Image className="h-6 w-6 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Thêm hình ảnh</span>
+                      </div>
+                    </Button>
+                  )}
+                  <input
+                    id="product-image-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelect}
+                  />
                 </div>
               </div>
               <DialogFooter>
