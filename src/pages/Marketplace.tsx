@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Search, MapPin, MoreVertical, Trash2 } from "lucide-react";
+import { Plus, Search, MapPin, MoreVertical, Trash2, Image, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +29,9 @@ const Marketplace = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
   const [newProduct, setNewProduct] = useState({
     title: "",
     price: "",
@@ -61,20 +65,91 @@ const Marketplace = () => {
     }
   ]);
 
-  const handleCreateProduct = () => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error("Vui lòng chọn file hình ảnh");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Hình ảnh không được vượt quá 5MB");
+        return;
+      }
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview("");
+  };
+
+  const handleCreateProduct = async () => {
     if (!newProduct.title || !newProduct.price) {
       toast.error("Vui lòng điền đầy đủ thông tin sản phẩm");
       return;
     }
-    toast.success("Đã đăng sản phẩm thành công!");
-    setIsDialogOpen(false);
-    setNewProduct({
-      title: "",
-      price: "",
-      description: "",
-      location: "",
-      category: "electronics"
-    });
+
+    setIsUploading(true);
+    let imageUrl = "";
+
+    try {
+      // Upload image if selected
+      if (selectedImage) {
+        const fileExt = selectedImage.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('posts-media')
+          .upload(filePath, selectedImage);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('posts-media')
+          .getPublicUrl(filePath);
+
+        imageUrl = publicUrl;
+      }
+
+      // For now, just add to local state (will connect to database later)
+      const newProductItem: Product = {
+        id: Date.now(),
+        title: newProduct.title,
+        price: parseFloat(newProduct.price),
+        description: newProduct.description,
+        location: newProduct.location,
+        seller: "Người dùng",
+        timeAgo: "Vừa xong",
+        image: imageUrl,
+        category: newProduct.category
+      };
+
+      setProducts([newProductItem, ...products]);
+      toast.success("Đã đăng sản phẩm thành công!");
+      setIsDialogOpen(false);
+      setNewProduct({
+        title: "",
+        price: "",
+        description: "",
+        location: "",
+        category: "electronics"
+      });
+      setSelectedImage(null);
+      setImagePreview("");
+    } catch (error) {
+      console.error('Error creating product:', error);
+      toast.error("Có lỗi xảy ra khi đăng sản phẩm");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleDeleteProduct = (productId: number) => {
@@ -229,13 +304,57 @@ const Marketplace = () => {
                     className="resize-none min-h-[120px]"
                   />
                 </div>
+
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <Label>Hình ảnh sản phẩm</Label>
+                  <div className="space-y-2">
+                    {imagePreview ? (
+                      <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          className="w-full h-full object-cover"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2"
+                          onClick={removeImage}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full h-32 border-dashed"
+                        onClick={() => document.getElementById('product-image-upload')?.click()}
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <Image className="h-8 w-8 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Thêm hình ảnh</span>
+                        </div>
+                      </Button>
+                    )}
+                    <input
+                      id="product-image-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageSelect}
+                    />
+                  </div>
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Hủy
                 </Button>
-                <Button onClick={handleCreateProduct} className="bg-primary hover:bg-primary/90">
-                  Đăng bán
+                <Button onClick={handleCreateProduct} disabled={isUploading} className="bg-primary hover:bg-primary/90">
+                  {isUploading ? "Đang đăng..." : "Đăng bán"}
                 </Button>
               </DialogFooter>
             </DialogContent>
