@@ -310,7 +310,7 @@ const Marketplace = () => {
                   <Label>Hình ảnh sản phẩm</Label>
                   <div className="space-y-2">
                     {imagePreview ? (
-                      <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
+                      <div className="relative w-full h-48 bg-muted rounded-lg overflow-hidden">
                         <img 
                           src={imagePreview} 
                           alt="Preview" 
