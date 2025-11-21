@@ -122,6 +122,75 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          receiver_id: string | null
+          sender_id: string | null
+          status: Database["public"]["Enums"]["transaction_status"]
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          receiver_id?: string | null
+          sender_id?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          type?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -130,7 +199,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      transaction_status: "pending" | "completed" | "failed" | "cancelled"
+      transaction_type: "transfer" | "reward" | "purchase" | "refund"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -257,6 +327,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      transaction_status: ["pending", "completed", "failed", "cancelled"],
+      transaction_type: ["transfer", "reward", "purchase", "refund"],
+    },
   },
 } as const
