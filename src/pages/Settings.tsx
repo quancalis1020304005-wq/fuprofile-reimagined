@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { z } from "zod";
+import { HonorBoard } from "@/components/HonorBoard";
 
 const profileSchema = z.object({
   username: z.string().min(3, "Tên người dùng phải có ít nhất 3 ký tự").max(30, "Tên người dùng quá dài").regex(/^[a-zA-Z0-9_]+$/, "Tên người dùng chỉ được chứa chữ, số và dấu gạch dưới"),
@@ -32,6 +33,7 @@ const Settings = () => {
 
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [userId, setUserId] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -45,6 +47,8 @@ const Settings = () => {
       navigate('/auth');
       return;
     }
+
+    setUserId(user.id);
 
     // Load profile data
     const { data: profileData, error } = await supabase
@@ -193,6 +197,12 @@ const Settings = () => {
           </div>
           <p className="text-muted-foreground">Quản lý tài khoản và tùy chọn của bạn</p>
         </div>
+
+        {userId && (
+          <div className="mb-6">
+            <HonorBoard userId={userId} />
+          </div>
+        )}
 
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 bg-muted/30">
