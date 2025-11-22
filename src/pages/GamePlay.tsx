@@ -19,9 +19,24 @@ interface MiniGame {
 const GamePlay = () => {
   const navigate = useNavigate();
   const [happyCamlyCoin, setHappyCamlyCoin] = useState(0);
-  const [games, setGames] = useState<MiniGame[]>([]);
+  const [games, setGames] = useState<MiniGame[]>([
+    {
+      id: "angel-art",
+      name: "🎨 Sáng tạo cùng Angel",
+      description: "Điều khiển ong vẽ tranh - Tránh hoa bay lung tung",
+      reward: 1000000,
+      difficulty: "Khó",
+      icon: Star,
+      played: false
+    }
+  ]);
 
   const handlePlayGame = (gameId: string) => {
+    if (gameId === "angel-art") {
+      navigate("/angel-art");
+      return;
+    }
+
     const game = games.find((g) => g.id === gameId);
     if (!game) return;
 
