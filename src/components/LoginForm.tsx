@@ -24,7 +24,7 @@ export const LoginForm = () => {
     e.preventDefault();
     
     // Validate input
-    const result = loginSchema.safeParse({ email, password });
+    const result = loginSchema.safeParse({ email: email.trim(), password });
     if (!result.success) {
       toast.error(result.error.errors[0].message);
       return;
@@ -32,22 +32,26 @@ export const LoginForm = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
       });
 
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
-          toast.error("Email hoặc mật khẩu không đúng");
+          toast.error("Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại.");
+        } else if (error.message.includes("Email not confirmed")) {
+          toast.error("Vui lòng xác nhận email trước khi đăng nhập");
         } else {
           toast.error(error.message);
         }
         return;
       }
 
-      toast.success("Đăng nhập thành công!");
-      navigate("/feed");
+      if (data.user) {
+        toast.success("Đăng nhập thành công!");
+        navigate("/feed");
+      }
     } catch (error) {
       toast.error("Đã xảy ra lỗi. Vui lòng thử lại");
     } finally {

@@ -6,6 +6,7 @@ import { Heart, Trophy, Key, Coins } from "lucide-react";
 import { BotAvatar } from "@/components/BotAvatar";
 import { CoinReward } from "@/components/CoinReward";
 import { NPCDialog } from "@/components/NPCDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 const FRUITS = ["🍎", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🍑", "🍒", "🥝"];
 const MAX_LIVES = 1;
@@ -63,6 +64,27 @@ const MemoryGame = () => {
   const [showCoinReward, setShowCoinReward] = useState(false);
   const [showNPCDialog, setShowNPCDialog] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [userName, setUserName] = useState<string>("Angel");
+
+  // Fetch user profile on mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, username")
+          .eq("user_id", user.id)
+          .single();
+        
+        if (profile) {
+          setUserName(profile.full_name || profile.username || "Angel");
+        }
+      }
+    };
+    
+    fetchUserProfile();
+  }, []);
 
   // Load game stats from localStorage
   useEffect(() => {
@@ -270,7 +292,7 @@ const MemoryGame = () => {
       setGameStats(prev => ({ ...prev, consecutiveWins: 0 }));
     } else if (playerWon) {
       const newConsecutiveWins = gameStats.consecutiveWins + 1;
-      toast.success(`Bạn thắng ván ${gameStats.currentRound}! ${gameStats.playerScore} - ${gameStats.botScore}`);
+      toast.success(`🎉 ${userName} đã thắng ván ${gameStats.currentRound}! ${gameStats.playerScore} - ${gameStats.botScore}`);
       
       setGameStats(prev => ({
         ...prev,
@@ -285,7 +307,7 @@ const MemoryGame = () => {
         setTimeout(() => setShowCoinReward(true), 1500);
       }
     } else {
-      toast.error(`Bot thắng ván ${gameStats.currentRound}! ${gameStats.playerScore} - ${gameStats.botScore}`);
+      toast.error(`😢 ${userName} đã thua ván ${gameStats.currentRound}! ${gameStats.playerScore} - ${gameStats.botScore}`);
       setGameStats(prev => ({
         ...prev,
         botRoundWins: prev.botRoundWins + 1,
@@ -299,7 +321,7 @@ const MemoryGame = () => {
 
     // Check if game series is complete
     if (gameStats.currentRound >= MAX_ROUNDS) {
-      setTimeout(() => endGame(), 2000);
+      endGame();
     } else {
       setGameStats(prev => ({ ...prev, currentRound: prev.currentRound + 1 }));
     }
@@ -310,9 +332,9 @@ const MemoryGame = () => {
     const finalWinner = gameStats.playerRoundWins > gameStats.botRoundWins ? "player" : "bot";
     
     if (finalWinner === "player") {
-      toast.success(`🎉 Chúc mừng! Bạn thắng ${gameStats.playerRoundWins}/${MAX_ROUNDS} ván!`);
+      toast.success(`🎉 Chúc mừng ${userName}! Bạn đã thắng ${gameStats.playerRoundWins}/${MAX_ROUNDS} ván!`);
     } else {
-      toast.error(`Bot thắng series ${gameStats.botRoundWins}/${MAX_ROUNDS} ván!`);
+      toast.error(`😢 ${userName} đã thua! Bot thắng ${gameStats.botRoundWins}/${MAX_ROUNDS} ván!`);
     }
 
     // Reset for new game series
