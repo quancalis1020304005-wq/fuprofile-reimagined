@@ -1,153 +1,309 @@
-import { useState } from "react";
-import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, List, Music2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Plus, Heart, Music2, TrendingUp, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { MusicPlayer } from "@/components/MusicPlayer";
+import { useMusicPlayer, Song } from "@/hooks/useMusicPlayer";
+import { usePlaylists } from "@/hooks/usePlaylists";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const FunMusics = () => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentSong, setCurrentSong] = useState(0);
-  const [volume, setVolume] = useState([70]);
-  const [progress, setProgress] = useState([30]);
+  const playerState = useMusicPlayer();
+  const { playlists, createPlaylist, loading: playlistsLoading } = usePlaylists();
+  const { toast } = useToast();
+  
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [likedSongs, setLikedSongs] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [newPlaylistName, setNewPlaylistName] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const playlist = [
-    { id: 1, title: "Starlight Dreams", artist: "Luna Bay", duration: "3:45", cover: "🎵" },
-    { id: 2, title: "Midnight Vibes", artist: "The Echoes", duration: "4:12", cover: "🎸" },
-    { id: 3, title: "Summer Breeze", artist: "Coastal Drift", duration: "3:28", cover: "🌊" },
-    { id: 4, title: "Electric Soul", artist: "Neon Pulse", duration: "4:55", cover: "⚡" },
-    { id: 5, title: "Morning Coffee", artist: "Jazz Collective", duration: "3:15", cover: "☕" },
+  useEffect(() => {
+    fetchSongs();
+    fetchLikedSongs();
+  }, []);
+
+  const fetchSongs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("songs")
+        .select(`
+          *,
+          artists:artist_id (name)
+        `)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const formattedSongs: Song[] = (data || []).map((song: any) => ({
+        id: song.id,
+        title: song.title,
+        artist_id: song.artist_id,
+        artist_name: song.artists?.name,
+        album_id: song.album_id,
+        audio_url: song.audio_url,
+        cover_url: song.cover_url,
+        duration: song.duration,
+        lyrics: song.lyrics,
+      }));
+
+      setSongs(formattedSongs);
+    } catch (error: any) {
+      toast({
+        title: "Lỗi",
+        description: "Không thể tải danh sách bài hát",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLikedSongs = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("liked_songs")
+        .select("song_id")
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      setLikedSongs(new Set(data?.map(ls => ls.song_id) || []));
+    } catch (error: any) {
+      console.error("Error fetching liked songs:", error);
+    }
+  };
+
+  const toggleLike = async (songId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Lỗi",
+          description: "Vui lòng đăng nhập để thích bài hát",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const isLiked = likedSongs.has(songId);
+
+      if (isLiked) {
+        const { error } = await supabase
+          .from("liked_songs")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("song_id", songId);
+
+        if (error) throw error;
+
+        setLikedSongs(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(songId);
+          return newSet;
+        });
+      } else {
+        const { error } = await supabase
+          .from("liked_songs")
+          .insert({ user_id: user.id, song_id: songId });
+
+        if (error) throw error;
+
+        setLikedSongs(prev => new Set([...prev, songId]));
+      }
+    } catch (error: any) {
+      toast({
+        title: "Lỗi",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreatePlaylist = async () => {
+    if (!newPlaylistName.trim()) return;
+    await createPlaylist(newPlaylistName);
+    setNewPlaylistName("");
+  };
+
+  const filteredSongs = songs.filter(song =>
+    song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    song.artist_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const mockSongs: Song[] = [
+    { id: "1", title: "Starlight Dreams", artist_id: "1", artist_name: "Luna Bay", audio_url: "", cover_url: "", duration: 225 },
+    { id: "2", title: "Midnight Vibes", artist_id: "2", artist_name: "The Echoes", audio_url: "", cover_url: "", duration: 252 },
+    { id: "3", title: "Summer Breeze", artist_id: "3", artist_name: "Coastal Drift", audio_url: "", cover_url: "", duration: 208 },
   ];
 
+  const displaySongs = songs.length > 0 ? filteredSongs : mockSongs;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-accent/5 p-4">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          FunMusics
-        </h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Now Playing */}
-          <div className="lg:col-span-2">
-            <Card className="p-8 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
-              <div className="flex flex-col items-center">
-                {/* Album Art */}
-                <div className="w-64 h-64 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center text-8xl mb-6 shadow-lg">
-                  {playlist[currentSong].cover}
-                </div>
-
-                {/* Song Info */}
-                <h2 className="text-3xl font-bold mb-2">{playlist[currentSong].title}</h2>
-                <p className="text-muted-foreground mb-6">{playlist[currentSong].artist}</p>
-
-                {/* Progress Bar */}
-                <div className="w-full mb-6">
-                  <Slider
-                    value={progress}
-                    onValueChange={setProgress}
-                    max={100}
-                    step={1}
-                    className="w-full"
+    <>
+      <div className="min-h-screen bg-gradient-to-b from-background to-accent/5 p-4 pb-32">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              FunMusics
+            </h1>
+            
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Tạo Playlist
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Tạo Playlist Mới</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <Input
+                    placeholder="Tên playlist..."
+                    value={newPlaylistName}
+                    onChange={(e) => setNewPlaylistName(e.target.value)}
                   />
-                  <div className="flex justify-between text-sm text-muted-foreground mt-2">
-                    <span>1:23</span>
-                    <span>{playlist[currentSong].duration}</span>
-                  </div>
-                </div>
-
-                {/* Controls */}
-                <div className="flex items-center gap-4 mb-6">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setCurrentSong((prev) => (prev > 0 ? prev - 1 : playlist.length - 1))}
-                    className="h-12 w-12"
-                  >
-                    <SkipBack className="h-6 w-6" />
-                  </Button>
-
-                  <Button
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    size="icon"
-                    className="h-16 w-16 rounded-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
-                  >
-                    {isPlaying ? (
-                      <Pause className="h-8 w-8" fill="currentColor" />
-                    ) : (
-                      <Play className="h-8 w-8 ml-1" fill="currentColor" />
-                    )}
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setCurrentSong((prev) => (prev < playlist.length - 1 ? prev + 1 : 0))}
-                    className="h-12 w-12"
-                  >
-                    <SkipForward className="h-6 w-6" />
+                  <Button onClick={handleCreatePlaylist} className="w-full">
+                    Tạo
                   </Button>
                 </div>
-
-                {/* Volume & Actions */}
-                <div className="flex items-center gap-6 w-full max-w-md">
-                  <Button variant="ghost" size="icon">
-                    <Heart className="h-5 w-5" />
-                  </Button>
-
-                  <div className="flex items-center gap-2 flex-1">
-                    <Volume2 className="h-5 w-5 text-muted-foreground" />
-                    <Slider
-                      value={volume}
-                      onValueChange={setVolume}
-                      max={100}
-                      step={1}
-                      className="flex-1"
-                    />
-                  </div>
-
-                  <Button variant="ghost" size="icon">
-                    <List className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
+              </DialogContent>
+            </Dialog>
           </div>
 
-          {/* Playlist */}
-          <div>
-            <Card className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Music2 className="h-5 w-5 text-primary" />
-                <h3 className="text-xl font-bold">Playlist</h3>
-              </div>
+          {/* Search Bar */}
+          <div className="relative mb-6">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Tìm bài hát, nghệ sĩ..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
 
-              <ScrollArea className="h-[600px]">
-                <div className="space-y-2">
-                  {playlist.map((song, index) => (
-                    <button
+          <Tabs defaultValue="songs" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="songs" className="gap-2">
+                <Music2 className="h-4 w-4" />
+                Bài Hát
+              </TabsTrigger>
+              <TabsTrigger value="trending" className="gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Trending
+              </TabsTrigger>
+              <TabsTrigger value="recent" className="gap-2">
+                <Clock className="h-4 w-4" />
+                Nghe Gần Đây
+              </TabsTrigger>
+              <TabsTrigger value="liked" className="gap-2">
+                <Heart className="h-4 w-4" />
+                Yêu Thích
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="songs" className="space-y-4">
+              {loading ? (
+                <Card className="p-8 text-center text-muted-foreground">
+                  Đang tải...
+                </Card>
+              ) : displaySongs.length === 0 ? (
+                <Card className="p-8 text-center text-muted-foreground">
+                  Không tìm thấy bài hát nào
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {displaySongs.map((song) => (
+                    <Card
                       key={song.id}
-                      onClick={() => setCurrentSong(index)}
-                      className={`w-full p-4 rounded-lg text-left transition-all hover:bg-accent/50 ${
-                        currentSong === index ? "bg-primary/10 border border-primary/20" : ""
-                      }`}
+                      className="p-4 hover:bg-accent/50 transition-colors cursor-pointer group"
+                      onClick={() => playerState.playSong(song, displaySongs)}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="text-3xl">{song.cover}</div>
+                        {song.cover_url ? (
+                          <img
+                            src={song.cover_url}
+                            alt={song.title}
+                            className="w-16 h-16 rounded-md object-cover"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center text-3xl">
+                            🎵
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold truncate">{song.title}</p>
-                          <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {song.artist_name || "Unknown Artist"}
+                          </p>
                         </div>
-                        <span className="text-sm text-muted-foreground">{song.duration}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleLike(song.id);
+                          }}
+                        >
+                          <Heart
+                            className={`h-5 w-5 ${
+                              likedSongs.has(song.id) ? "fill-red-500 text-red-500" : ""
+                            }`}
+                          />
+                        </Button>
                       </div>
-                    </button>
+                    </Card>
                   ))}
                 </div>
-              </ScrollArea>
-            </Card>
-          </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="trending">
+              <Card className="p-8 text-center text-muted-foreground">
+                Chức năng Trending đang phát triển...
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="recent">
+              <Card className="p-8 text-center text-muted-foreground">
+                Lịch sử nghe đang phát triển...
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="liked">
+              <Card className="p-8 text-center text-muted-foreground">
+                {likedSongs.size === 0 ? "Chưa có bài hát yêu thích" : "Danh sách bài hát yêu thích"}
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
-    </div>
+
+      {/* Music Player */}
+      <MusicPlayer
+        playerState={playerState}
+        onToggleLike={
+          playerState.currentSong
+            ? () => toggleLike(playerState.currentSong!.id)
+            : undefined
+        }
+        isLiked={
+          playerState.currentSong ? likedSongs.has(playerState.currentSong.id) : false
+        }
+      />
+    </>
   );
 };
 
