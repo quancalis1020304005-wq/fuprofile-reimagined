@@ -75,7 +75,18 @@ export const useFeed = ({ mode = 'top', limit = 20 }: UseFeedOptions = {}) => {
 
       const { data, error } = await query as any;
 
-      if (error) throw error;
+      if (error) {
+        // Handle stale cursor error
+        if (error.code === 'PGRST116' || error.message?.includes('cursor')) {
+          console.warn('Stale cursor detected, resetting feed');
+          setCursor(null);
+          if (!reset) {
+            fetchPosts(true);
+            return;
+          }
+        }
+        throw error;
+      }
 
       // Fetch viewer state for each post
       const postsWithState = await Promise.all(
@@ -105,16 +116,35 @@ export const useFeed = ({ mode = 'top', limit = 20 }: UseFeedOptions = {}) => {
             } : undefined,
             viewer_state: {
               liked,
-              saved: false, // TODO: implement saved posts
+              saved: false,
             },
           };
         })
       );
 
+      // Filter out duplicates based on post ID
+      const existingIds = new Set(posts.map(p => p.id));
+      const newPosts = postsWithState.filter(post => !existingIds.has(post.id));
+
+      // Detect duplicate authors (throttle repeated posts from same author)
+      const authorCounts = new Map<string, number>();
+      posts.forEach(post => {
+        if (post.author?.id) {
+          authorCounts.set(post.author.id, (authorCounts.get(post.author.id) || 0) + 1);
+        }
+      });
+
+      const filteredPosts = newPosts.filter(post => {
+        if (!post.author?.id) return true;
+        const count = authorCounts.get(post.author.id) || 0;
+        // Limit to 3 consecutive posts from same author in feed
+        return count < 3;
+      });
+
       if (reset) {
-        setPosts(postsWithState);
+        setPosts(filteredPosts);
       } else {
-        setPosts((prev) => [...prev, ...postsWithState]);
+        setPosts((prev) => [...prev, ...filteredPosts]);
       }
 
       // Set cursor for next page
@@ -126,10 +156,15 @@ export const useFeed = ({ mode = 'top', limit = 20 }: UseFeedOptions = {}) => {
       setHasMore(postsWithState.length === limit);
     } catch (error) {
       console.error('Error fetching feed:', error);
+      // On error, suggest refresh to user
+      if (error instanceof Error && error.message?.includes('cursor')) {
+        setCursor(null);
+        setHasMore(true);
+      }
     } finally {
       setLoading(false);
     }
-  }, [mode, limit, cursor]);
+  }, [mode, limit, cursor, posts]);
 
   const loadMore = useCallback(() => {
     if (!loading && hasMore) {

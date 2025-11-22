@@ -1,7 +1,8 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { PostCard } from "./PostCard";
-import { Loader2, Filter } from "lucide-react";
+import { Loader2, Filter, WifiOff } from "lucide-react";
 import { useFeed, FeedMode } from "@/hooks/useFeed";
+import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { Button } from "./ui/button";
 import {
   DropdownMenu,
@@ -10,10 +11,12 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { useState } from "react";
+import { Alert, AlertDescription } from "./ui/alert";
 
 export const PostsFeed = () => {
   const [mode, setMode] = useState<FeedMode>('top');
   const { posts, loading, hasMore, loadMore, refresh } = useFeed({ mode, limit: 20 });
+  const { isOnline, queueLength } = useOfflineQueue();
   const observerTarget = useRef<HTMLDivElement>(null);
 
   // Infinite scroll observer
@@ -53,6 +56,16 @@ export const PostsFeed = () => {
 
   return (
     <div className="space-y-4">
+      {/* Offline Alert */}
+      {!isOnline && (
+        <Alert variant="destructive">
+          <WifiOff className="h-4 w-4" />
+          <AlertDescription>
+            Bạn đang offline. {queueLength > 0 && `${queueLength} hành động đang chờ đồng bộ.`}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Filter Header */}
       <div className="flex items-center justify-between bg-card rounded-lg p-3 border">
         <h3 className="font-semibold text-sm">Bảng tin</h3>

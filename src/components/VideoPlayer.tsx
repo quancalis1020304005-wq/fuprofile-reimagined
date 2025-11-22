@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 interface VideoPlayerProps {
   src: string;
   className?: string;
+  onError?: () => void;
 }
 
-export const VideoPlayer = ({ src, className }: VideoPlayerProps) => {
+export const VideoPlayer = ({ src, className, onError }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -23,17 +24,22 @@ export const VideoPlayer = ({ src, className }: VideoPlayerProps) => {
     const handleTimeUpdate = () => setCurrentTime(video.currentTime);
     const handleLoadedMetadata = () => setDuration(video.duration);
     const handleEnded = () => setIsPlaying(false);
+    const handleError = () => {
+      if (onError) onError();
+    };
 
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
     video.addEventListener("ended", handleEnded);
+    video.addEventListener("error", handleError);
 
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
       video.removeEventListener("ended", handleEnded);
+      video.removeEventListener("error", handleError);
     };
-  }, []);
+  }, [onError]);
 
   const togglePlay = () => {
     if (videoRef.current) {
