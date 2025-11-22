@@ -1,4 +1,4 @@
-import { Home, Users, UsersRound, ShoppingBag, Wallet, Gamepad2, Settings } from "lucide-react";
+import { Home, Users, UsersRound, ShoppingBag, Wallet, Gamepad2, Settings, Music } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -14,11 +14,12 @@ import {
 
 const mainItems = [
   { title: "Trang chủ", url: "/feed", icon: Home },
-  { title: "Bạn bè", url: "/friends", icon: Users },
-  { title: "Nhóm", url: "/groups", icon: UsersRound },
-  { title: "Marketplace", url: "/marketplace", icon: ShoppingBag },
-  { title: "Ví", url: "/wallet", icon: Wallet },
-  { title: "GamePlay", url: "/gameplay", icon: Gamepad2 },
+  { title: "FunBạn bè", url: "/friends", icon: Users },
+  { title: "FunNhóm", url: "/groups", icon: UsersRound },
+  { title: "FunMarketplace", url: "/marketplace", icon: ShoppingBag },
+  { title: "FunVí", url: "/wallet", icon: Wallet },
+  { title: "FunGamePlay", url: "/gameplay", icon: Gamepad2 },
+  { title: "FunMusics", url: "/funmusics", icon: Music },
   { title: "Cài đặt", url: "/settings", icon: Settings },
 ];
 
