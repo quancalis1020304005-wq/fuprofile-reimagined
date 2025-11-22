@@ -54,11 +54,70 @@ export const useMusicServiceConnection = () => {
         return;
       }
 
-      // Open OAuth flow
+      // Get session token to pass to callback
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Lỗi",
+          description: "Không tìm thấy phiên đăng nhập",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Store session token for callback
+      sessionStorage.setItem('music_auth_token', session.access_token);
+
+      // Open OAuth in popup window (like MetaMask)
+      const width = 600;
+      const height = 700;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+      
       const redirectUrl = `${window.location.origin}/funmusics`;
       const authUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/music-auth?service=${service}&redirect_url=${encodeURIComponent(redirectUrl)}`;
       
-      window.location.href = authUrl;
+      const popup = window.open(
+        authUrl,
+        `${service}_auth`,
+        `width=${width},height=${height},left=${left},top=${top},popup=yes`
+      );
+
+      if (!popup) {
+        toast({
+          title: "Lỗi",
+          description: "Vui lòng cho phép popup để kết nối",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Listen for callback
+      const checkPopup = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkPopup);
+          sessionStorage.removeItem('music_auth_token');
+          fetchConnections();
+          
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('success')) {
+            toast({
+              title: "Thành công",
+              description: `Đã kết nối với ${service === 'spotify' ? 'Spotify' : 'YouTube Music'}`,
+            });
+            // Clean URL
+            window.history.replaceState({}, '', window.location.pathname);
+          } else if (urlParams.get('error')) {
+            toast({
+              title: "Lỗi",
+              description: "Không thể kết nối. Vui lòng thử lại.",
+              variant: "destructive",
+            });
+            window.history.replaceState({}, '', window.location.pathname);
+          }
+        }
+      }, 500);
+
     } catch (error: any) {
       toast({
         title: "Lỗi",

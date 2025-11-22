@@ -1,1 +1,7 @@
 project_id = "fwtpbkqxhsnkcavlafyz"
+
+[functions.music-auth]
+verify_jwt = false
+
+[functions.music-callback]
+verify_jwt = false
