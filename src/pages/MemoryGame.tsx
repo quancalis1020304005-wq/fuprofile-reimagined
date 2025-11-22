@@ -16,6 +16,80 @@ const CARDS_COUNT = 20;
 const BOT_CHARACTERS = ["Doraemon", "Nobita", "Shizuka", "Suneo", "Gian"];
 const REQUIRED_STREAK = 5;
 
+// Bot taunts and encouragements
+const BOT_MESSAGES = {
+  Doraemon: {
+    taunts: [
+      "Nobita còn chơi tốt hơn cậu đấy! 😅",
+      "Cậu cần bảo bối trí nhớ của mình không? 🎒",
+      "Hehe, luyện tập thêm nhé! 💙",
+      "Ôi ôi, có vẻ cậu cần ngủ đủ giấc rồi đấy! 😴"
+    ],
+    encouragements: [
+      "Đừng lo, ai cũng có lúc thua mà! Cố lên! 💪",
+      "Cậu đã chơi tốt rồi, lần sau sẽ thắng thôi! 🌟",
+      "Thất bại là mẹ thành công! Tiếp tục cố gắng nhé! 🎯",
+      "Mình tin cậu làm được! Hãy thử lại! 🌈"
+    ]
+  },
+  Nobita: {
+    taunts: [
+      "Haha lần này tớ giỏi hơn cậu rồi! 😎",
+      "Cậu yếu hơn cả tớ luôn! Không ngờ nhỉ? 😂",
+      "Lần đầu tớ thắng ai đó! Cảm ơn cậu! 🤣",
+      "Mẹ ơi, có người gà hơn cả tớ! 😆"
+    ],
+    encouragements: [
+      "Tớ hiểu mà, tớ cũng hay thua lắm... 😔",
+      "Đừng buồn, thua rồi cứ chơi lại thôi! 💙",
+      "Chúng ta cùng gà, cố lên nào! 🤝",
+      "Thua không sao, quan trọng là vui! 😊"
+    ]
+  },
+  Shizuka: {
+    taunts: [
+      "Ôi, lần này em may mắn quá nhỉ! ✨",
+      "Có lẽ anh cần tập trung hơn một chút? 🌸",
+      "Em không nghĩ em lại thắng được! 😊",
+      "Hehe, lần này em giỏi hơn anh rồi! 💫"
+    ],
+    encouragements: [
+      "Đừng lo anh nhé, chơi lại sẽ thắng thôi! 🌺",
+      "Anh đã cố gắng rất tốt rồi! 💕",
+      "Mọi người đều có lúc thua mà, đừng buồn! 🌷",
+      "Em tin anh sẽ làm tốt hơn lần sau! 🌟"
+    ]
+  },
+  Suneo: {
+    taunts: [
+      "Hahaha! Tớ giàu lại còn giỏi nữa! 💰",
+      "Cậu thua tớ rồi! Tớ siêu đẳng mà! 👑",
+      "Dễ như ăn kẹo! Cậu quá yếu! 🍬",
+      "Tớ xịn hơn cậu nhiều đấy! Chấp nhận đi! 😏"
+    ],
+    encouragements: [
+      "Ừm... thua cũng bình thường thôi... 😅",
+      "Lần sau cậu sẽ giỏi hơn... có lẽ thế... 🤷",
+      "Cố lên... dù tớ vẫn giỏi hơn cậu! 💪",
+      "Chơi lại đi, tớ tin cậu... một chút! 🎯"
+    ]
+  },
+  Gian: {
+    taunts: [
+      "GAHAHA! Tao mạnh nhất! Mày yếu quá! 💪",
+      "Thua rồi! Tao bảo mày yếu mà! 😤",
+      "Không ai thắng nổi đại ca! Về tập đi! 👊",
+      "Mày gà lắm! Tao thắng dễ như chơi! 🦍"
+    ],
+    encouragements: [
+      "Ờ... thua thì thua, đừng khóc nhé! 😅",
+      "Tao mạnh quá, mày cố lên lần sau! 💪",
+      "Chơi lại đi! Tao sẽ... nhẹ tay hơn! 🤝",
+      "Thua tao không xấu hổ đâu, tao pro mà! 🏆"
+    ]
+  }
+};
+
 interface CardType {
   id: number;
   fruit: string;
@@ -307,7 +381,23 @@ const MemoryGame = () => {
         setTimeout(() => setShowCoinReward(true), 1500);
       }
     } else {
+      const currentBot = BOT_CHARACTERS[gameStats.botCharacterIndex];
+      const botMessages = BOT_MESSAGES[currentBot as keyof typeof BOT_MESSAGES];
+      
+      // Random 50/50: taunt or encouragement
+      const isTaunt = Math.random() < 0.5;
+      const messages = isTaunt ? botMessages.taunts : botMessages.encouragements;
+      const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+      
       toast.error(`😢 ${userName} đã thua ván ${gameStats.currentRound}! ${gameStats.playerScore} - ${gameStats.botScore}`);
+      
+      // Show bot message after a delay
+      setTimeout(() => {
+        toast(`${currentBot}: ${randomMessage}`, {
+          duration: 4000,
+          icon: isTaunt ? "😏" : "😊"
+        });
+      }, 1000);
       
       // Reset tất cả khi thua ván
       setGameStats({
@@ -325,7 +415,10 @@ const MemoryGame = () => {
         npcChoices: [],
         hasReceivedKey: false,
       });
-      toast.error("Tất cả tiến độ được reset. Chờ 2h 59p để chơi lại.");
+      
+      setTimeout(() => {
+        toast.error("Tất cả tiến độ được reset. Chờ 2h 59p để chơi lại.");
+      }, 1500);
     }
 
     setIsGameActive(false);
