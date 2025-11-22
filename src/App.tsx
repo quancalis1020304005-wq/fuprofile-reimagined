@@ -40,6 +40,7 @@ const App = () => (
             <Route path="/angel-art" element={<ProtectedRoute><Layout><AngelArtGame /></Layout></ProtectedRoute>} />
             <Route path="/funmusics" element={<ProtectedRoute><Layout><FunMusics /></Layout></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
+          <Route path="/play" element={<MemoryGame />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
