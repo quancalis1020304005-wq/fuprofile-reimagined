@@ -14,6 +14,7 @@ import Wallet from "./pages/Wallet";
 import GamePlay from "./pages/GamePlay";
 import MemoryGame from "./pages/MemoryGame";
 import AngelArtGame from "./pages/AngelArtGame";
+import FunMusics from "./pages/FunMusics";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -34,10 +35,11 @@ const App = () => (
           <Route path="/groups" element={<ProtectedRoute><Layout><Groups /></Layout></ProtectedRoute>} />
           <Route path="/marketplace" element={<ProtectedRoute><Layout><Marketplace /></Layout></ProtectedRoute>} />
           <Route path="/wallet" element={<ProtectedRoute><Layout><Wallet /></Layout></ProtectedRoute>} />
-          <Route path="/gameplay" element={<ProtectedRoute><Layout><GamePlay /></Layout></ProtectedRoute>} />
-          <Route path="/memory-game" element={<ProtectedRoute><Layout><MemoryGame /></Layout></ProtectedRoute>} />
-          <Route path="/angel-art" element={<ProtectedRoute><Layout><AngelArtGame /></Layout></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
+            <Route path="/gameplay" element={<ProtectedRoute><Layout><GamePlay /></Layout></ProtectedRoute>} />
+            <Route path="/memory-game" element={<ProtectedRoute><Layout><MemoryGame /></Layout></ProtectedRoute>} />
+            <Route path="/angel-art" element={<ProtectedRoute><Layout><AngelArtGame /></Layout></ProtectedRoute>} />
+            <Route path="/funmusics" element={<ProtectedRoute><Layout><FunMusics /></Layout></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
