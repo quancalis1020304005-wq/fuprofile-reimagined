@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const FRUITS = ["🍎", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🍑", "🍒", "🥝"];
 const MAX_LIVES = 1;
-const LIFE_RESPAWN_DELAY = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+const LIFE_RESPAWN_DELAY = (2 * 60 + 59) * 60 * 1000; // 2h 59m in milliseconds
 const MAX_ROUNDS = 5;
 const CARDS_COUNT = 20;
 const BOT_CHARACTERS = ["Doraemon", "Nobita", "Shizuka", "Suneo", "Gian"];
@@ -113,7 +113,7 @@ const MemoryGame = () => {
   // Initialize game
   const initializeGame = () => {
     if (gameStats.lives <= 0) {
-      toast.error("Bạn đã thua — quay lại sau 3 giờ để có lại 1 máu");
+      toast.error("Bạn đã thua — chờ 2h 59p để có lại 1 máu và chơi lại từ đầu");
       return;
     }
 
@@ -308,13 +308,35 @@ const MemoryGame = () => {
       }
     } else {
       toast.error(`😢 ${userName} đã thua ván ${gameStats.currentRound}! ${gameStats.playerScore} - ${gameStats.botScore}`);
-      setGameStats(prev => ({
-        ...prev,
-        botRoundWins: prev.botRoundWins + 1,
-        lives: prev.lives - 1,
-        lastLifeLostTime: Date.now(),
-        consecutiveWins: 0,
-      }));
+      const newLives = gameStats.lives - 1;
+      
+      if (newLives <= 0) {
+        // Reset tất cả khi hết mạng
+        setGameStats(prev => ({
+          lives: 0,
+          lastLifeLostTime: Date.now(),
+          playerScore: 0,
+          botScore: 0,
+          currentRound: 1,
+          playerRoundWins: 0,
+          botRoundWins: 0,
+          consecutiveWins: 0,
+          totalPoints: 0,
+          botCharacterIndex: 0,
+          difficultyLevel: 1,
+          npcChoices: [],
+          hasReceivedKey: false,
+        }));
+        toast.error("Bạn đã thua! Tất cả tiến độ được reset. Chờ 2h 59p để chơi lại.");
+      } else {
+        setGameStats(prev => ({
+          ...prev,
+          botRoundWins: prev.botRoundWins + 1,
+          lives: newLives,
+          lastLifeLostTime: Date.now(),
+          consecutiveWins: 0,
+        }));
+      }
     }
 
     setIsGameActive(false);
@@ -594,7 +616,7 @@ const MemoryGame = () => {
             <li>• Nếu tìm được cặp, bạn được chơi tiếp</li>
             <li>• Bên nào tìm được nhiều cặp hơn sẽ thắng ván</li>
             <li>• Thắng tối đa trong 5 ván để chiến thắng</li>
-            <li>• Mất 1 máu mỗi khi thua ván (máu hồi sau 3 giờ)</li>
+            <li>• Mất 1 máu mỗi khi thua ván (máu hồi sau 2h 59p, tất cả tiến độ reset)</li>
             <li>• Thắng 5 ván liên tiếp để nhận CamlyCoin và điểm thưởng!</li>
             <li>• Bot sẽ khó hơn sau mỗi ván thắng của bạn</li>
             <li>• Chọn 2 đáp án khác nhau với NPC để nhận chìa khóa bí mật</li>
