@@ -367,6 +367,39 @@ export type Database = {
         }
         Relationships: []
       }
+      music_service_connections: {
+        Row: {
+          access_token: string
+          connected_at: string
+          expires_at: string | null
+          id: string
+          refresh_token: string | null
+          service_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          connected_at?: string
+          expires_at?: string | null
+          id?: string
+          refresh_token?: string | null
+          service_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          connected_at?: string
+          expires_at?: string | null
+          id?: string
+          refresh_token?: string | null
+          service_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       playlist_songs: {
         Row: {
           added_at: string
