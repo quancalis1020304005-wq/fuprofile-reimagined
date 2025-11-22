@@ -52,7 +52,7 @@ const Auth = () => {
     e.preventDefault();
     
     // Validate input
-    const result = loginSchema.safeParse({ email, password });
+    const result = loginSchema.safeParse({ email: email.trim(), password });
     if (!result.success) {
       toast.error(result.error.errors[0].message);
       return;
@@ -61,18 +61,20 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
       });
 
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
-          toast.error("Email hoặc mật khẩu không đúng");
+          toast.error("Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại.");
+        } else if (error.message.includes("Email not confirmed")) {
+          toast.error("Vui lòng xác nhận email trước khi đăng nhập");
         } else {
           toast.error(error.message);
         }
-      } else {
+      } else if (data.user) {
         toast.success("Đăng nhập thành công!");
       }
     } catch (error) {
@@ -86,7 +88,12 @@ const Auth = () => {
     e.preventDefault();
     
     // Validate input
-    const result = signupSchema.safeParse({ email, password, username, fullName });
+    const result = signupSchema.safeParse({ 
+      email: email.trim(), 
+      password, 
+      username: username.trim(), 
+      fullName: fullName.trim() 
+    });
     if (!result.success) {
       toast.error(result.error.errors[0].message);
       return;
@@ -95,13 +102,13 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
         password,
         options: {
           data: {
-            full_name: fullName,
-            username: username,
+            full_name: fullName.trim(),
+            username: username.trim(),
           },
           emailRedirectTo: `${window.location.origin}/feed`,
         },
@@ -109,11 +116,13 @@ const Auth = () => {
 
       if (error) {
         if (error.message.includes("already registered")) {
-          toast.error("Email này đã được đăng ký");
+          toast.error("Email này đã được đăng ký. Vui lòng đăng nhập.");
+        } else if (error.message.includes("User already registered")) {
+          toast.error("Tài khoản đã tồn tại. Vui lòng đăng nhập.");
         } else {
           toast.error(error.message);
         }
-      } else {
+      } else if (data.user) {
         toast.success("Đăng ký thành công! Đang đăng nhập...");
       }
     } catch (error) {
