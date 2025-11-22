@@ -30,6 +30,12 @@ const BOT_MESSAGES = {
       "Cậu đã chơi tốt rồi, lần sau sẽ thắng thôi! 🌟",
       "Thất bại là mẹ thành công! Tiếp tục cố gắng nhé! 🎯",
       "Mình tin cậu làm được! Hãy thử lại! 🌈"
+    ],
+    loseReactions: [
+      "Ồ, cậu giỏi thật đấy! Chúc mừng! 🎉",
+      "Hehe, lần này cậu may mắn quá! 😊",
+      "Cậu tiến bộ rồi đấy! Mình tự hào! 💙",
+      "Tuyệt vời! Mình sẽ cố gắng hơn lần sau! ✨"
     ]
   },
   Nobita: {
@@ -44,6 +50,12 @@ const BOT_MESSAGES = {
       "Đừng buồn, thua rồi cứ chơi lại thôi! 💙",
       "Chúng ta cùng gà, cố lên nào! 🤝",
       "Thua không sao, quan trọng là vui! 😊"
+    ],
+    loseReactions: [
+      "Ủa... cậu thắng tớ rồi... 😢",
+      "Không ngờ... tớ lại thua... như mọi khi... 😭",
+      "Tớ cũng biết mà... tớ gà lắm... 😔",
+      "Cậu giỏi quá... tớ chịu thua... 😞"
     ]
   },
   Shizuka: {
@@ -58,6 +70,12 @@ const BOT_MESSAGES = {
       "Anh đã cố gắng rất tốt rồi! 💕",
       "Mọi người đều có lúc thua mà, đừng buồn! 🌷",
       "Em tin anh sẽ làm tốt hơn lần sau! 🌟"
+    ],
+    loseReactions: [
+      "Ôi, anh giỏi quá! Chúc mừng anh! 🌸",
+      "Em thua rồi... nhưng anh chơi hay lắm! 💕",
+      "Xuất sắc! Anh thật tuyệt vời! ✨",
+      "Anh đã cố gắng rất tốt! Em vui cho anh! 🌺"
     ]
   },
   Suneo: {
@@ -72,6 +90,12 @@ const BOT_MESSAGES = {
       "Lần sau cậu sẽ giỏi hơn... có lẽ thế... 🤷",
       "Cố lên... dù tớ vẫn giỏi hơn cậu! 💪",
       "Chơi lại đi, tớ tin cậu... một chút! 🎯"
+    ],
+    loseReactions: [
+      "Gì cơ?! Không thể nào! Tớ... tớ thua?! 😠",
+      "Lần này cậu may thôi! Tớ vẫn giàu hơn! 💰",
+      "Hmph! Tớ để cậu thắng đấy! 😤",
+      "Cậu chơi ẩu! Tớ không phục! 👎"
     ]
   },
   Gian: {
@@ -86,6 +110,12 @@ const BOT_MESSAGES = {
       "Tao mạnh quá, mày cố lên lần sau! 💪",
       "Chơi lại đi! Tao sẽ... nhẹ tay hơn! 🤝",
       "Thua tao không xấu hổ đâu, tao pro mà! 🏆"
+    ],
+    loseReactions: [
+      "NANII?! Tao thua?! Không thể! 😡",
+      "Lần sau tao sẽ đập cho! 👊",
+      "Grrr... mày gian lận à?! 😤",
+      "Tao không phục! Chơi lại! 🦍"
     ]
   }
 };
@@ -366,7 +396,19 @@ const MemoryGame = () => {
       setGameStats(prev => ({ ...prev, consecutiveWins: 0 }));
     } else if (playerWon) {
       const newConsecutiveWins = gameStats.consecutiveWins + 1;
+      const currentBot = BOT_CHARACTERS[gameStats.botCharacterIndex];
+      const botMessages = BOT_MESSAGES[currentBot as keyof typeof BOT_MESSAGES];
+      
       toast.success(`🎉 ${userName} đã thắng ván ${gameStats.currentRound}! ${gameStats.playerScore} - ${gameStats.botScore}`);
+      
+      // Show bot's lose reaction
+      setTimeout(() => {
+        const randomMessage = botMessages.loseReactions[Math.floor(Math.random() * botMessages.loseReactions.length)];
+        toast(`${currentBot}: ${randomMessage}`, {
+          duration: 4000,
+          icon: "😅"
+        });
+      }, 1000);
       
       setGameStats(prev => ({
         ...prev,
