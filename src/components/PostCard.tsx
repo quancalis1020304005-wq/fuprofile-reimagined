@@ -22,10 +22,16 @@ export const PostCard = ({ id, author, avatar, timeAgo, content, images, likes, 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [failedMedia, setFailedMedia] = useState<Set<number>>(new Set());
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const audioFiles = images?.filter(media => media.type === 'audio') || [];
   const hasAudio = audioFiles.length > 0;
+
+  const handleMediaError = (index: number) => {
+    setFailedMedia(prev => new Set(prev).add(index));
+    toast.error('Không thể tải media');
+  };
 
   useEffect(() => {
     if (audioRef.current) {
@@ -85,16 +91,22 @@ export const PostCard = ({ id, author, avatar, timeAgo, content, images, likes, 
           <div className={`mt-3 rounded-lg overflow-hidden relative ${images.filter(m => m.type !== 'audio').length === 1 ? '' : 'grid grid-cols-2 gap-1'}`}>
             {images.filter(media => media.type !== 'audio').map((media, index) => (
               <div key={index}>
-                {media.type === 'video' ? (
+                {failedMedia.has(index) ? (
+                  <div className="w-full h-48 bg-muted/50 rounded-lg flex items-center justify-center">
+                    <p className="text-sm text-muted-foreground">Không thể tải media</p>
+                  </div>
+                ) : media.type === 'video' ? (
                   <VideoPlayer 
                     src={media.url}
                     className="w-full"
+                    onError={() => handleMediaError(index)}
                   />
                 ) : (
                   <img 
                     src={media.url}
                     alt={`Post media ${index + 1}`}
                     className="w-full h-auto object-cover max-h-[500px]"
+                    onError={() => handleMediaError(index)}
                   />
                 )}
               </div>

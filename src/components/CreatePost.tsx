@@ -16,9 +16,13 @@ export const CreatePost = () => {
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [mediaPreview, setMediaPreview] = useState<string[]>([]);
   const [isPosting, setIsPosting] = useState(false);
+  const [lastPostTime, setLastPostTime] = useState<number>(0);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
+
+  // Rate limiting: 1 post per 30 seconds
+  const RATE_LIMIT_MS = 30000;
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video' | 'audio') => {
     const files = event.target.files;
@@ -52,6 +56,15 @@ export const CreatePost = () => {
   const handlePost = async () => {
     if (!content.trim() && mediaFiles.length === 0) {
       toast.error("Vui lòng nhập nội dung hoặc thêm ảnh/video");
+      return;
+    }
+
+    // Rate limiting check
+    const now = Date.now();
+    const timeSinceLastPost = now - lastPostTime;
+    if (timeSinceLastPost < RATE_LIMIT_MS && lastPostTime > 0) {
+      const remainingSeconds = Math.ceil((RATE_LIMIT_MS - timeSinceLastPost) / 1000);
+      toast.error(`Vui lòng đợi ${remainingSeconds}s trước khi đăng bài tiếp`);
       return;
     }
 
@@ -115,12 +128,23 @@ export const CreatePost = () => {
       if (insertError) throw insertError;
 
       toast.success("Đã đăng bài viết thành công!");
+      setLastPostTime(Date.now());
       setContent("");
       setMediaFiles([]);
       setMediaPreview([]);
     } catch (error) {
       console.error('Error posting:', error);
-      toast.error("Có lỗi xảy ra khi đăng bài");
+      
+      // Handle specific errors
+      if (error instanceof Error) {
+        if (error.message?.includes('media')) {
+          toast.error("Không thể upload media, vui lòng thử lại");
+        } else {
+          toast.error("Có lỗi xảy ra khi đăng bài");
+        }
+      } else {
+        toast.error("Có lỗi xảy ra khi đăng bài");
+      }
     } finally {
       setIsPosting(false);
     }
