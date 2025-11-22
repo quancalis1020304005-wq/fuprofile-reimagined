@@ -59,6 +59,147 @@ export type Database = {
           },
         ]
       }
+      feed_snapshots: {
+        Row: {
+          created_at: string | null
+          cursor: string | null
+          id: string
+          post_ids: string[] | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          cursor?: string | null
+          id?: string
+          post_ids?: string[] | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          cursor?: string | null
+          id?: string
+          post_ids?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      follows: {
+        Row: {
+          created_at: string | null
+          follower_id: string
+          id: string
+          target_id: string
+          target_type: Database["public"]["Enums"]["follow_target_type"] | null
+        }
+        Insert: {
+          created_at?: string | null
+          follower_id: string
+          id?: string
+          target_id: string
+          target_type?: Database["public"]["Enums"]["follow_target_type"] | null
+        }
+        Update: {
+          created_at?: string | null
+          follower_id?: string
+          id?: string
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["follow_target_type"] | null
+        }
+        Relationships: []
+      }
+      friendships: {
+        Row: {
+          created_at: string | null
+          id: string
+          status: Database["public"]["Enums"]["friendship_status"] | null
+          updated_at: string | null
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["friendship_status"] | null
+          updated_at?: string | null
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["friendship_status"] | null
+          updated_at?: string | null
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: []
+      }
+      interactions: {
+        Row: {
+          created_at: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          id: string
+          metadata: Json | null
+          type: Database["public"]["Enums"]["interaction_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          id?: string
+          metadata?: Json | null
+          type: Database["public"]["Enums"]["interaction_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["entity_type"]
+          id?: string
+          metadata?: Json | null
+          type?: Database["public"]["Enums"]["interaction_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      media: {
+        Row: {
+          created_at: string | null
+          duration: number | null
+          height: number | null
+          id: string
+          owner_id: string
+          thumb_url: string | null
+          type: Database["public"]["Enums"]["media_type"] | null
+          url: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration?: number | null
+          height?: number | null
+          id?: string
+          owner_id: string
+          thumb_url?: string | null
+          type?: Database["public"]["Enums"]["media_type"] | null
+          url: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          duration?: number | null
+          height?: number | null
+          id?: string
+          owner_id?: string
+          thumb_url?: string | null
+          type?: Database["public"]["Enums"]["media_type"] | null
+          url?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           content: string | null
@@ -66,6 +207,10 @@ export type Database = {
           id: string
           media_types: string[] | null
           media_urls: string[] | null
+          metrics: Json | null
+          parent_post_id: string | null
+          privacy: Database["public"]["Enums"]["privacy_type"] | null
+          score_cache: number | null
           updated_at: string
           user_id: string
         }
@@ -75,6 +220,10 @@ export type Database = {
           id?: string
           media_types?: string[] | null
           media_urls?: string[] | null
+          metrics?: Json | null
+          parent_post_id?: string | null
+          privacy?: Database["public"]["Enums"]["privacy_type"] | null
+          score_cache?: number | null
           updated_at?: string
           user_id: string
         }
@@ -84,10 +233,22 @@ export type Database = {
           id?: string
           media_types?: string[] | null
           media_urls?: string[] | null
+          metrics?: Json | null
+          parent_post_id?: string | null
+          privacy?: Database["public"]["Enums"]["privacy_type"] | null
+          score_cache?: number | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "posts_parent_post_id_fkey"
+            columns: ["parent_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -121,6 +282,82 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      reels: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          media_id: string
+          metrics: Json | null
+          score_cache: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          media_id: string
+          metrics?: Json | null
+          score_cache?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          media_id?: string
+          metrics?: Json | null
+          score_cache?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reels_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stories: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          media_id: string | null
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          media_id?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          media_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stories_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -164,6 +401,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       wallets: {
         Row: {
           balance: number
@@ -196,9 +454,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
+      entity_type: "post" | "comment" | "story" | "reel"
+      follow_target_type: "user" | "page"
+      friendship_status: "pending" | "accepted" | "blocked"
+      interaction_type: "like" | "comment" | "share" | "view" | "reaction"
+      media_type: "image" | "video" | "audio" | "document"
+      privacy_type: "PUBLIC" | "FRIENDS" | "ONLY_ME" | "CUSTOM"
       transaction_status: "pending" | "completed" | "failed" | "cancelled"
       transaction_type: "transfer" | "reward" | "purchase" | "refund"
     }
@@ -328,6 +599,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
+      entity_type: ["post", "comment", "story", "reel"],
+      follow_target_type: ["user", "page"],
+      friendship_status: ["pending", "accepted", "blocked"],
+      interaction_type: ["like", "comment", "share", "view", "reaction"],
+      media_type: ["image", "video", "audio", "document"],
+      privacy_type: ["PUBLIC", "FRIENDS", "ONLY_ME", "CUSTOM"],
       transaction_status: ["pending", "completed", "failed", "cancelled"],
       transaction_type: ["transfer", "reward", "purchase", "refund"],
     },
