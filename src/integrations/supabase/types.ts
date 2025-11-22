@@ -14,6 +14,109 @@ export type Database = {
   }
   public: {
     Tables: {
+      albums: {
+        Row: {
+          artist_id: string
+          cover_url: string | null
+          created_at: string
+          id: string
+          release_date: string | null
+          title: string
+          total_tracks: number | null
+          updated_at: string
+        }
+        Insert: {
+          artist_id: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          release_date?: string | null
+          title: string
+          total_tracks?: number | null
+          updated_at?: string
+        }
+        Update: {
+          artist_id?: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          release_date?: string | null
+          title?: string
+          total_tracks?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "albums_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artist_follows: {
+        Row: {
+          artist_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          artist_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          artist_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_follows_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artists: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          followers_count: number | null
+          id: string
+          name: string
+          updated_at: string
+          verified: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          followers_count?: number | null
+          id?: string
+          name: string
+          updated_at?: string
+          verified?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          followers_count?: number | null
+          id?: string
+          name?: string
+          updated_at?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -164,6 +267,70 @@ export type Database = {
         }
         Relationships: []
       }
+      liked_songs: {
+        Row: {
+          created_at: string
+          id: string
+          song_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          song_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          song_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "liked_songs_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listening_history: {
+        Row: {
+          completed: boolean | null
+          duration_played: number | null
+          id: string
+          played_at: string
+          song_id: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          duration_played?: number | null
+          id?: string
+          played_at?: string
+          song_id: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          duration_played?: number | null
+          id?: string
+          played_at?: string
+          song_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listening_history_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       media: {
         Row: {
           created_at: string | null
@@ -197,6 +364,78 @@ export type Database = {
           type?: Database["public"]["Enums"]["media_type"] | null
           url?: string
           width?: number | null
+        }
+        Relationships: []
+      }
+      playlist_songs: {
+        Row: {
+          added_at: string
+          id: string
+          playlist_id: string
+          position: number
+          song_id: string
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          playlist_id: string
+          position: number
+          song_id: string
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          playlist_id?: string
+          position?: number
+          song_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playlist_songs_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playlist_songs_song_id_fkey"
+            columns: ["song_id"]
+            isOneToOne: false
+            referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlists: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -320,6 +559,66 @@ export type Database = {
             columns: ["media_id"]
             isOneToOne: false
             referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      songs: {
+        Row: {
+          album_id: string | null
+          artist_id: string
+          audio_url: string
+          cover_url: string | null
+          created_at: string
+          duration: number
+          id: string
+          lyrics: string | null
+          lyrics_sync: Json | null
+          play_count: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          album_id?: string | null
+          artist_id: string
+          audio_url: string
+          cover_url?: string | null
+          created_at?: string
+          duration: number
+          id?: string
+          lyrics?: string | null
+          lyrics_sync?: Json | null
+          play_count?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          album_id?: string | null
+          artist_id?: string
+          audio_url?: string
+          cover_url?: string | null
+          created_at?: string
+          duration?: number
+          id?: string
+          lyrics?: string | null
+          lyrics_sync?: Json | null
+          play_count?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "songs_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "songs_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
             referencedColumns: ["id"]
           },
         ]
