@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Heart, Music2, TrendingUp, Clock } from "lucide-react";
+import { Search, Plus, Heart, Music2, TrendingUp, Clock, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { MusicPlayer } from "@/components/MusicPlayer";
+import { MusicServiceSelector } from "@/components/MusicServiceSelector";
 import { useMusicPlayer, Song } from "@/hooks/useMusicPlayer";
 import { usePlaylists } from "@/hooks/usePlaylists";
 import { supabase } from "@/integrations/supabase/client";
@@ -196,6 +197,10 @@ const FunMusics = () => {
 
           <Tabs defaultValue="songs" className="space-y-6">
             <TabsList>
+              <TabsTrigger value="connect" className="gap-2">
+                <Link2 className="h-4 w-4" />
+                Liên kết
+              </TabsTrigger>
               <TabsTrigger value="songs" className="gap-2">
                 <Music2 className="h-4 w-4" />
                 Bài Hát
@@ -213,6 +218,16 @@ const FunMusics = () => {
                 Yêu Thích
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="connect" className="space-y-4">
+              <Card className="p-6">
+                <h2 className="text-2xl font-bold mb-4">Liên kết tài khoản nhạc</h2>
+                <p className="text-muted-foreground mb-6">
+                  Kết nối với Spotify hoặc YouTube Music để nghe nhạc từ thư viện của bạn
+                </p>
+                <MusicServiceSelector />
+              </Card>
+            </TabsContent>
 
             <TabsContent value="songs" className="space-y-4">
               {loading ? (
