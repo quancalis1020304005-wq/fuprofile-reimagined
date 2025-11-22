@@ -30,13 +30,13 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/memory-game" element={<MemoryGame />} />
           <Route path="/feed" element={<ProtectedRoute><Layout><Feed /></Layout></ProtectedRoute>} />
           <Route path="/friends" element={<ProtectedRoute><Layout><Friends /></Layout></ProtectedRoute>} />
           <Route path="/groups" element={<ProtectedRoute><Layout><Groups /></Layout></ProtectedRoute>} />
           <Route path="/marketplace" element={<ProtectedRoute><Layout><Marketplace /></Layout></ProtectedRoute>} />
           <Route path="/wallet" element={<ProtectedRoute><Layout><Wallet /></Layout></ProtectedRoute>} />
             <Route path="/gameplay" element={<ProtectedRoute><Layout><GamePlay /></Layout></ProtectedRoute>} />
-            <Route path="/memory-game" element={<ProtectedRoute><Layout><MemoryGame /></Layout></ProtectedRoute>} />
             <Route path="/angel-art" element={<ProtectedRoute><Layout><AngelArtGame /></Layout></ProtectedRoute>} />
             <Route path="/funmusics" element={<ProtectedRoute><Layout><FunMusics /></Layout></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
