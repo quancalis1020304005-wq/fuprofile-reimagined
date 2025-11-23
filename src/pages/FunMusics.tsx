@@ -11,12 +11,14 @@ import { MusicPlayer } from "@/components/MusicPlayer";
 import { MusicServiceSelector } from "@/components/MusicServiceSelector";
 import { useMusicPlayer, Song } from "@/hooks/useMusicPlayer";
 import { usePlaylists } from "@/hooks/usePlaylists";
+import { useMusicServiceConnection } from "@/hooks/useMusicServiceConnection";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const FunMusics = () => {
   const playerState = useMusicPlayer();
   const { playlists, createPlaylist, loading: playlistsLoading } = usePlaylists();
+  const { isConnected } = useMusicServiceConnection();
   const { toast } = useToast();
   
   const [songs, setSongs] = useState<Song[]>([]);
@@ -24,6 +26,7 @@ const FunMusics = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [loading, setLoading] = useState(true);
+  const [musicSource, setMusicSource] = useState<'database' | 'spotify'>('database');
 
   useEffect(() => {
     fetchSongs();
@@ -32,6 +35,40 @@ const FunMusics = () => {
 
   const fetchSongs = async () => {
     try {
+      setLoading(true);
+      
+      // Check if Spotify is connected
+      if (isConnected('spotify')) {
+        console.log('Fetching from Spotify...');
+        setMusicSource('spotify');
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error('Not authenticated');
+        }
+
+        const { data, error } = await supabase.functions.invoke('spotify-tracks', {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (error) throw error;
+
+        if (data?.songs && data.songs.length > 0) {
+          setSongs(data.songs);
+          toast({
+            title: "Thành công",
+            description: `Đã tải ${data.songs.length} bài hát từ Spotify`,
+          });
+          return;
+        }
+      }
+      
+      // Fallback to database songs
+      console.log('Fetching from database...');
+      setMusicSource('database');
+      
       const { data, error } = await supabase
         .from("songs")
         .select(`
@@ -57,9 +94,10 @@ const FunMusics = () => {
 
       setSongs(formattedSongs);
     } catch (error: any) {
+      console.error('Error fetching songs:', error);
       toast({
         title: "Lỗi",
-        description: "Không thể tải danh sách bài hát",
+        description: error.message || "Không thể tải danh sách bài hát",
         variant: "destructive",
       });
     } finally {
@@ -243,6 +281,15 @@ const FunMusics = () => {
             </TabsContent>
 
             <TabsContent value="songs" className="space-y-4">
+              {musicSource === 'spotify' && songs.length > 0 && (
+                <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                  <Info className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <AlertDescription className="text-sm text-green-800 dark:text-green-300">
+                    <strong>Đã kết nối Spotify:</strong> Bạn đang xem {songs.length} bài hát từ thư viện Spotify của bạn. Lưu ý: chỉ các bài hát có preview (30 giây) mới phát được.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
               {songs.length === 0 && !loading && (
                 <Alert className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
                   <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
