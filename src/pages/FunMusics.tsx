@@ -12,11 +12,13 @@ import { MusicServiceSelector } from "@/components/MusicServiceSelector";
 import { useMusicPlayer, Song } from "@/hooks/useMusicPlayer";
 import { usePlaylists } from "@/hooks/usePlaylists";
 import { useMusicServiceConnection } from "@/hooks/useMusicServiceConnection";
+import { useSpotifyPlayer } from "@/hooks/useSpotifyPlayer";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const FunMusics = () => {
   const playerState = useMusicPlayer();
+  const spotifyPlayer = useSpotifyPlayer();
   const { playlists, createPlaylist, loading: playlistsLoading } = usePlaylists();
   const { isConnected } = useMusicServiceConnection();
   const { toast } = useToast();
@@ -282,12 +284,23 @@ const FunMusics = () => {
 
             <TabsContent value="songs" className="space-y-4">
               {musicSource === 'spotify' && songs.length > 0 && (
-                <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                  <Info className="h-4 w-4 text-green-600 dark:text-green-400" />
-                  <AlertDescription className="text-sm text-green-800 dark:text-green-300">
-                    <strong>Đã kết nối Spotify:</strong> Bạn đang xem {songs.length} bài hát từ thư viện Spotify của bạn. Lưu ý: chỉ các bài hát có preview (30 giây) mới phát được.
-                  </AlertDescription>
-                </Alert>
+                <>
+                  {spotifyPlayer.playerState.isReady && spotifyPlayer.playerState.isPremium ? (
+                    <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                      <Info className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      <AlertDescription className="text-sm text-green-800 dark:text-green-300">
+                        <strong>Spotify Premium đã kích hoạt:</strong> Bạn có thể phát nhạc toàn bộ từ {songs.length} bài hát trong thư viện Spotify!
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <Alert className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
+                      <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      <AlertDescription className="text-sm text-amber-800 dark:text-amber-300">
+                        <strong>Đã kết nối Spotify:</strong> Bạn đang xem {songs.length} bài hát. Để phát toàn bộ, cần tài khoản Spotify Premium. Hiện tại chỉ phát được preview 30 giây.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </>
               )}
               
               {songs.length === 0 && !loading && (
@@ -313,7 +326,18 @@ const FunMusics = () => {
                     <Card
                       key={song.id}
                       className="p-4 hover:bg-accent/50 transition-colors cursor-pointer group"
-                      onClick={() => playerState.playSong(song, displaySongs)}
+                      onClick={() => {
+                        // If Spotify Premium is ready and song has Spotify URI, use Spotify player
+                        if (spotifyPlayer.playerState.isReady && 
+                            spotifyPlayer.playerState.isPremium && 
+                            (song as any).external_url) {
+                          const spotifyUri = `spotify:track:${song.id}`;
+                          spotifyPlayer.play(spotifyUri);
+                        } else {
+                          // Otherwise use HTML5 audio with preview
+                          playerState.playSong(song, displaySongs);
+                        }
+                      }}
                     >
                       <div className="flex items-center gap-3">
                         {song.cover_url ? (
@@ -378,6 +402,7 @@ const FunMusics = () => {
       {/* Music Player */}
       <MusicPlayer
         playerState={playerState}
+        spotifyPlayerState={spotifyPlayer.playerState}
         onToggleLike={
           playerState.currentSong
             ? () => toggleLike(playerState.currentSong!.id)

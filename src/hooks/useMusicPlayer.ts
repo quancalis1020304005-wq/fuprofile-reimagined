@@ -10,6 +10,7 @@ export interface Song {
   cover_url?: string;
   duration: number;
   lyrics?: string;
+  external_url?: string; // For Spotify integration
 }
 
 export interface PlayerState {
