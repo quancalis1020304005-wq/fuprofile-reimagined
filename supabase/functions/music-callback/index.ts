@@ -44,7 +44,7 @@ serve(async (req) => {
         return Response.redirect(`${redirectUrl}?error=config_error`, 302);
       }
 
-      const callbackUrl = `${url.origin}/functions/v1/music-callback`;
+      const callbackUrl = `${supabaseUrl}/functions/v1/music-callback`;
 
       // Exchange code for token
       const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
