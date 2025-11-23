@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Heart, Music2, TrendingUp, Clock, Link2 } from "lucide-react";
+import { Search, Plus, Heart, Music2, TrendingUp, Clock, Link2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MusicPlayer } from "@/components/MusicPlayer";
 import { MusicServiceSelector } from "@/components/MusicServiceSelector";
 import { useMusicPlayer, Song } from "@/hooks/useMusicPlayer";
@@ -220,6 +221,18 @@ const FunMusics = () => {
             </TabsList>
 
             <TabsContent value="connect" className="space-y-4">
+              <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <AlertDescription className="text-sm text-blue-800 dark:text-blue-300">
+                  <strong>Lưu ý quan trọng:</strong> Để liên kết với Spotify, bạn cần có tài khoản Spotify (miễn phí hoặc Premium). 
+                  Đăng nhập F.U Profile chỉ để truy cập ứng dụng, còn đăng nhập Spotify là để cấp quyền truy cập thư viện nhạc của bạn trên Spotify.
+                  <br /><br />
+                  <strong>Nếu chưa có tài khoản Spotify:</strong> Bạn có thể đăng ký miễn phí tại <a href="https://www.spotify.com/signup" target="_blank" rel="noopener noreferrer" className="underline font-semibold">spotify.com/signup</a>
+                  <br /><br />
+                  <strong>Chế độ Demo:</strong> Bạn có thể sử dụng tab "Bài Hát" để trải nghiệm giao diện với dữ liệu mẫu mà không cần liên kết Spotify.
+                </AlertDescription>
+              </Alert>
+              
               <Card className="p-6">
                 <h2 className="text-2xl font-bold mb-4">Liên kết tài khoản nhạc</h2>
                 <p className="text-muted-foreground mb-6">
@@ -230,6 +243,15 @@ const FunMusics = () => {
             </TabsContent>
 
             <TabsContent value="songs" className="space-y-4">
+              {songs.length === 0 && !loading && (
+                <Alert className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
+                  <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <AlertDescription className="text-sm text-amber-800 dark:text-amber-300">
+                    <strong>Chế độ Demo:</strong> Bạn đang xem dữ liệu mẫu. Liên kết với Spotify (tab "Liên kết") để truy cập thư viện nhạc thật của bạn!
+                  </AlertDescription>
+                </Alert>
+              )}
+              
               {loading ? (
                 <Card className="p-8 text-center text-muted-foreground">
                   Đang tải...
