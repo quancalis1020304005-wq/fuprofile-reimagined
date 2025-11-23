@@ -2,15 +2,18 @@ import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Repeat1, 
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useMusicPlayer } from "@/hooks/useMusicPlayer";
+import { SpotifyPlayerState } from "@/hooks/useSpotifyPlayer";
 
 interface MusicPlayerProps {
   playerState: ReturnType<typeof useMusicPlayer>;
+  spotifyPlayerState?: SpotifyPlayerState;
   onToggleLike?: () => void;
   isLiked?: boolean;
 }
 
-export const MusicPlayer = ({ playerState, onToggleLike, isLiked }: MusicPlayerProps) => {
+export const MusicPlayer = ({ playerState, spotifyPlayerState, onToggleLike, isLiked }: MusicPlayerProps) => {
   const {
     currentSong,
     isPlaying,
@@ -61,7 +64,14 @@ export const MusicPlayer = ({ playerState, onToggleLike, isLiked }: MusicPlayerP
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="font-semibold truncate">{currentSong.title}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-semibold truncate">{currentSong.title}</p>
+                {spotifyPlayerState?.isReady && spotifyPlayerState?.isPremium && (
+                  <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
+                    Spotify Premium
+                  </Badge>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground truncate">
                 {currentSong.artist_name || "Unknown Artist"}
               </p>
