@@ -46,7 +46,8 @@ serve(async (req) => {
         'playlist-modify-private',
       ].join(' ');
 
-      const callbackUrl = `${url.origin}/functions/v1/music-callback`;
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://fwtpbkqxhsnkcavlafyz.supabase.co';
+      const callbackUrl = `${supabaseUrl}/functions/v1/music-callback`;
       const state = `${service}:${encodeURIComponent(redirectUrl)}`;
 
       const authUrl = new URL('https://accounts.spotify.com/authorize');
