@@ -13,11 +13,19 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const service = url.searchParams.get('service');
+    const userId = url.searchParams.get('user_id');
     const redirectUrl = url.searchParams.get('redirect_url') || url.origin;
 
     if (!service) {
       return new Response(
         JSON.stringify({ error: 'Service parameter is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'User ID parameter is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -48,7 +56,7 @@ serve(async (req) => {
 
       const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://fwtpbkqxhsnkcavlafyz.supabase.co';
       const callbackUrl = `${supabaseUrl}/functions/v1/music-callback`;
-      const state = `${service}:${encodeURIComponent(redirectUrl)}`;
+      const state = `${service}:${userId}:${encodeURIComponent(redirectUrl)}`;
 
       const authUrl = new URL('https://accounts.spotify.com/authorize');
       authUrl.searchParams.set('client_id', clientId);
