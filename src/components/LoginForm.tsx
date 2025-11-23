@@ -19,6 +19,8 @@ export const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +61,46 @@ export const LoginForm = () => {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!resetEmail.trim()) {
+      toast.error("Vui lòng nhập email");
+      return;
+    }
+
+    const emailSchema = z.string().email("Email không hợp lệ");
+    const result = emailSchema.safeParse(resetEmail.trim());
+    
+    if (!result.success) {
+      toast.error("Email không hợp lệ");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        resetEmail.trim(),
+        {
+          redirectTo: `${window.location.origin}/reset-password`,
+        }
+      );
+
+      if (error) {
+        toast.error("Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại.");
+        return;
+      }
+
+      toast.success("Đã gửi link đặt lại mật khẩu đến email của bạn!");
+      setShowResetPassword(false);
+      setResetEmail("");
+    } catch (error) {
+      toast.error("Đã xảy ra lỗi. Vui lòng thử lại");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSocialLogin = async (provider: "google" | "facebook" | "apple") => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -75,6 +117,53 @@ export const LoginForm = () => {
       toast.error("Đã xảy ra lỗi khi đăng nhập");
     }
   };
+
+  if (showResetPassword) {
+    return (
+      <form onSubmit={handleResetPassword} className="space-y-5">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-foreground">Quên mật khẩu?</h2>
+          <p className="text-sm text-muted-foreground mt-2">
+            Nhập email của bạn để nhận link đặt lại mật khẩu
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="reset-email" className="text-sm font-medium text-foreground">
+            Email
+          </Label>
+          <Input
+            id="reset-email"
+            type="email"
+            placeholder="email@example.com"
+            value={resetEmail}
+            onChange={(e) => setResetEmail(e.target.value)}
+            className="h-11 border-border bg-background"
+          />
+        </div>
+
+        <Button 
+          type="submit" 
+          disabled={loading}
+          className="w-full h-11 bg-primary hover:bg-accent text-primary-foreground font-medium"
+        >
+          {loading ? "Đang gửi..." : "Gửi link đặt lại mật khẩu"}
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => {
+            setShowResetPassword(false);
+            setResetEmail("");
+          }}
+          className="w-full"
+        >
+          Quay lại đăng nhập
+        </Button>
+      </form>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -116,9 +205,13 @@ export const LoginForm = () => {
       </div>
 
       <div className="flex justify-end">
-        <a href="#" className="text-sm text-primary hover:text-accent transition-colors">
+        <button
+          type="button"
+          onClick={() => setShowResetPassword(true)}
+          className="text-sm text-primary hover:text-accent transition-colors"
+        >
           Quên mật khẩu?
-        </a>
+        </button>
       </div>
 
       <Button 
