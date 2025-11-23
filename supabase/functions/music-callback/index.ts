@@ -19,7 +19,7 @@ serve(async (req) => {
 
     if (error) {
       console.error('OAuth error:', error);
-      const redirectUrl = state ? decodeURIComponent(state.split(':')[1]) : '/funmusics';
+      const redirectUrl = state ? decodeURIComponent(state.split(':')[2]) : '/funmusics';
       return Response.redirect(`${redirectUrl}?error=${error}`, 302);
     }
 
@@ -30,8 +30,13 @@ serve(async (req) => {
       );
     }
 
-    const [service, encodedRedirectUrl] = state.split(':');
+    const [service, userId, encodedRedirectUrl] = state.split(':');
     const redirectUrl = decodeURIComponent(encodedRedirectUrl);
+
+    if (!userId) {
+      console.error('No user ID in state');
+      return Response.redirect(`${redirectUrl}?error=invalid_state`, 302);
+    }
 
     if (service === 'spotify') {
       const clientId = Deno.env.get('SPOTIFY_CLIENT_ID');
@@ -69,23 +74,8 @@ serve(async (req) => {
       const tokenData = await tokenResponse.json();
       console.log('Token received, expires_in:', tokenData.expires_in);
 
-      // Get user info from session
-      const authHeader = req.headers.get('Authorization');
-      if (!authHeader) {
-        console.error('No authorization header');
-        return Response.redirect(`${redirectUrl}?error=auth_required`, 302);
-      }
-
+      // Use service role key to save connection
       const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
-      
-      // Extract user ID from JWT token
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-
-      if (userError || !user) {
-        console.error('Failed to get user:', userError);
-        return Response.redirect(`${redirectUrl}?error=user_error`, 302);
-      }
 
       // Save connection to database
       const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000).toISOString();
@@ -93,7 +83,7 @@ serve(async (req) => {
       const { error: dbError } = await supabase
         .from('music_service_connections')
         .upsert({
-          user_id: user.id,
+          user_id: userId,
           service_type: 'spotify',
           access_token: tokenData.access_token,
           refresh_token: tokenData.refresh_token,

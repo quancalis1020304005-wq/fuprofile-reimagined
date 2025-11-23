@@ -54,20 +54,6 @@ export const useMusicServiceConnection = () => {
         return;
       }
 
-      // Get session token to pass to callback
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Lỗi",
-          description: "Không tìm thấy phiên đăng nhập",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Store session token for callback
-      sessionStorage.setItem('music_auth_token', session.access_token);
-
       // Open OAuth in popup window (like MetaMask)
       const width = 600;
       const height = 700;
@@ -75,7 +61,7 @@ export const useMusicServiceConnection = () => {
       const top = window.screenY + (window.outerHeight - height) / 2;
       
       const redirectUrl = `${window.location.origin}/funmusics`;
-      const authUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/music-auth?service=${service}&redirect_url=${encodeURIComponent(redirectUrl)}`;
+      const authUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/music-auth?service=${service}&user_id=${user.id}&redirect_url=${encodeURIComponent(redirectUrl)}`;
       
       const popup = window.open(
         authUrl,
@@ -96,7 +82,6 @@ export const useMusicServiceConnection = () => {
       const checkPopup = setInterval(() => {
         if (popup.closed) {
           clearInterval(checkPopup);
-          sessionStorage.removeItem('music_auth_token');
           fetchConnections();
           
           const urlParams = new URLSearchParams(window.location.search);
