@@ -20,7 +20,7 @@ const FunMusics = () => {
   const playerState = useMusicPlayer();
   const spotifyPlayer = useSpotifyPlayer();
   const { playlists, createPlaylist, loading: playlistsLoading } = usePlaylists();
-  const { isConnected } = useMusicServiceConnection();
+  const { isConnected, loading: connectionsLoading } = useMusicServiceConnection();
   const { toast } = useToast();
   
   const [songs, setSongs] = useState<Song[]>([]);
@@ -31,16 +31,21 @@ const FunMusics = () => {
   const [musicSource, setMusicSource] = useState<'database' | 'spotify'>('database');
 
   useEffect(() => {
-    fetchSongs();
-    fetchLikedSongs();
-  }, []);
+    if (!connectionsLoading) {
+      fetchSongs();
+      fetchLikedSongs();
+    }
+  }, [connectionsLoading, isConnected]);
 
   const fetchSongs = async () => {
     try {
       setLoading(true);
       
       // Check if Spotify is connected
-      if (isConnected('spotify')) {
+      const spotifyConnected = isConnected('spotify');
+      console.log('Spotify connected:', spotifyConnected);
+      
+      if (spotifyConnected) {
         console.log('Fetching from Spotify...');
         setMusicSource('spotify');
         
