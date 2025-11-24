@@ -62,7 +62,19 @@ const FunMusics = () => {
 
         if (error) throw error;
 
-        if (data?.songs && data.songs.length > 0) {
+        if (data?.error) {
+          // Show error from edge function (e.g., Spotify Development mode restriction)
+          toast({
+            title: "Lỗi Spotify",
+            description: data.error,
+            variant: "destructive",
+          });
+          if (data.details) {
+            console.error('Spotify error details:', data.details);
+          }
+          // Fall back to database songs
+          setMusicSource('database');
+        } else if (data?.songs && data.songs.length > 0) {
           setSongs(data.songs);
           toast({
             title: "Thành công",
@@ -275,6 +287,17 @@ const FunMusics = () => {
                   <strong>Nếu chưa có tài khoản Spotify:</strong> Bạn có thể đăng ký miễn phí tại <a href="https://www.spotify.com/signup" target="_blank" rel="noopener noreferrer" className="underline font-semibold">spotify.com/signup</a>
                   <br /><br />
                   <strong>Chế độ Demo:</strong> Bạn có thể sử dụng tab "Bài Hát" để trải nghiệm giao diện với dữ liệu mẫu mà không cần liên kết Spotify.
+                </AlertDescription>
+              </Alert>
+              
+              <Alert className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
+                <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <AlertDescription className="text-sm text-amber-800 dark:text-amber-300">
+                  <strong>Spotify Development Mode:</strong> App này đang ở chế độ Development. Nếu bạn gặp lỗi 403 sau khi kết nối, cần thêm email tài khoản Spotify của bạn vào allowlist tại{' '}
+                  <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener noreferrer" className="underline font-semibold">
+                    developer.spotify.com/dashboard
+                  </a>
+                  {' '}→ Settings → User Management
                 </AlertDescription>
               </Alert>
               
