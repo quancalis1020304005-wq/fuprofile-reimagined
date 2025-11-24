@@ -29,17 +29,21 @@ const FunMusics = () => {
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [loading, setLoading] = useState(true);
   const [musicSource, setMusicSource] = useState<'database' | 'spotify'>('database');
+  const [spotifyError, setSpotifyError] = useState<string | null>(null);
+  const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
-    if (!connectionsLoading) {
+    if (!connectionsLoading && !hasFetched) {
       fetchSongs();
       fetchLikedSongs();
+      setHasFetched(true);
     }
-  }, [connectionsLoading, isConnected]);
+  }, [connectionsLoading, hasFetched]);
 
   const fetchSongs = async () => {
     try {
       setLoading(true);
+      setSpotifyError(null);
       
       // Check if Spotify is connected
       const spotifyConnected = isConnected('spotify');
@@ -63,12 +67,9 @@ const FunMusics = () => {
         if (error) throw error;
 
         if (data?.error) {
-          // Show error from edge function (e.g., Spotify Development mode restriction)
-          toast({
-            title: "Lỗi Spotify",
-            description: data.error,
-            variant: "destructive",
-          });
+          // Store error but don't show toast (we'll show it in UI)
+          setSpotifyError(data.error);
+          console.error('Spotify error:', data.error);
           if (data.details) {
             console.error('Spotify error details:', data.details);
           }
@@ -76,10 +77,7 @@ const FunMusics = () => {
           setMusicSource('database');
         } else if (data?.songs && data.songs.length > 0) {
           setSongs(data.songs);
-          toast({
-            title: "Thành công",
-            description: `Đã tải ${data.songs.length} bài hát từ Spotify`,
-          });
+          setSpotifyError(null);
           return;
         }
       }
@@ -278,6 +276,17 @@ const FunMusics = () => {
             </TabsList>
 
             <TabsContent value="connect" className="space-y-4">
+              {spotifyError && isConnected('spotify') && (
+                <Alert className="bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800">
+                  <Info className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  <AlertDescription className="text-sm text-red-800 dark:text-red-300">
+                    <strong>Lỗi Spotify:</strong> {spotifyError}
+                    <br /><br />
+                    Bạn đang xem dữ liệu mẫu. Để khắc phục, vui lòng làm theo hướng dẫn bên dưới.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
               <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
                 <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <AlertDescription className="text-sm text-blue-800 dark:text-blue-300">
