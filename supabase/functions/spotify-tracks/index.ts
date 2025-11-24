@@ -58,6 +58,19 @@ Deno.serve(async (req) => {
       const errorText = await spotifyResponse.text();
       console.error('Spotify API error:', spotifyResponse.status, errorText);
       
+      // 403 Forbidden - App in Development mode
+      if (spotifyResponse.status === 403) {
+        console.error('Spotify API 403: User not registered in app');
+        return new Response(
+          JSON.stringify({ 
+            error: 'Spotify Development Mode: Bạn cần thêm tài khoản Spotify vào allowlist tại developer.spotify.com/dashboard → Settings → User Management',
+            songs: [],
+            details: 'App đang ở chế độ Development. Chỉ người dùng được thêm vào allowlist mới sử dụng được.'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        );
+      }
+      
       // If token expired, try to refresh
       if (spotifyResponse.status === 401 && connection.refresh_token) {
         console.log('Token expired, refreshing...');
