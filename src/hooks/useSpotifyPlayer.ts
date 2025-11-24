@@ -43,14 +43,17 @@ export const useSpotifyPlayer = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data: connection } = await supabase
+        const { data: connection, error: connectionError } = await supabase
           .from("music_service_connections")
           .select("*")
           .eq("user_id", user.id)
           .eq("service_type", "spotify")
-          .single();
+          .maybeSingle();
 
-        if (!connection) return;
+        if (connectionError || !connection) {
+          console.log('No Spotify connection found');
+          return;
+        }
 
         // Wait for Spotify SDK to load
         if (!window.Spotify) {
@@ -169,14 +172,21 @@ export const useSpotifyPlayer = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: connection } = await supabase
+      const { data: connection, error: connectionError } = await supabase
         .from("music_service_connections")
         .select("access_token")
         .eq("user_id", user.id)
         .eq("service_type", "spotify")
-        .single();
+        .maybeSingle();
 
-      if (!connection) return;
+      if (connectionError || !connection) {
+        toast({
+          title: "Lỗi",
+          description: "Không tìm thấy kết nối Spotify",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Use Spotify Web API to play
       await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${playerState.deviceId}`, {
