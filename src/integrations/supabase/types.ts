@@ -162,6 +162,36 @@ export type Database = {
           },
         ]
       }
+      connect_sessions: {
+        Row: {
+          code_challenge: string
+          code_verifier: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          loveble_user_id: string
+          provider: string
+        }
+        Insert: {
+          code_challenge: string
+          code_verifier: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          loveble_user_id: string
+          provider: string
+        }
+        Update: {
+          code_challenge?: string
+          code_verifier?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          loveble_user_id?: string
+          provider?: string
+        }
+        Relationships: []
+      }
       feed_snapshots: {
         Row: {
           created_at: string | null
@@ -370,31 +400,46 @@ export type Database = {
       music_service_connections: {
         Row: {
           access_token: string
+          avatar_url: string | null
           connected_at: string
+          display_name: string | null
           expires_at: string | null
           id: string
+          provider_user_id: string | null
           refresh_token: string | null
+          scopes: string | null
           service_type: string
+          status: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           access_token: string
+          avatar_url?: string | null
           connected_at?: string
+          display_name?: string | null
           expires_at?: string | null
           id?: string
+          provider_user_id?: string | null
           refresh_token?: string | null
+          scopes?: string | null
           service_type: string
+          status?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           access_token?: string
+          avatar_url?: string | null
           connected_at?: string
+          display_name?: string | null
           expires_at?: string | null
           id?: string
+          provider_user_id?: string | null
           refresh_token?: string | null
+          scopes?: string | null
           service_type?: string
+          status?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -786,6 +831,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_connect_sessions: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
