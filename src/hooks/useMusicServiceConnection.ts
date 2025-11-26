@@ -44,8 +44,8 @@ export const useMusicServiceConnection = () => {
 
   const connectService = async (service: MusicService) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         toast({
           title: "Lỗi",
           description: "Vui lòng đăng nhập để liên kết tài khoản",
@@ -54,17 +54,31 @@ export const useMusicServiceConnection = () => {
         return;
       }
 
-      // Open OAuth in popup window (like MetaMask)
+      // Call start endpoint to get auth URL
+      const { data, error } = await supabase.functions.invoke('music-auth', {
+        body: { provider: service },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error || !data?.auth_url) {
+        toast({
+          title: "Lỗi",
+          description: "Không thể khởi tạo kết nối",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Open OAuth in popup window
       const width = 600;
       const height = 700;
       const left = window.screenX + (window.outerWidth - width) / 2;
       const top = window.screenY + (window.outerHeight - height) / 2;
       
-      const redirectUrl = `${window.location.origin}/funmusics`;
-      const authUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/music-auth?service=${service}&user_id=${user.id}&redirect_url=${encodeURIComponent(redirectUrl)}`;
-      
       const popup = window.open(
-        authUrl,
+        data.auth_url,
         `${service}_auth`,
         `width=${width},height=${height},left=${left},top=${top},popup=yes`
       );
@@ -78,28 +92,39 @@ export const useMusicServiceConnection = () => {
         return;
       }
 
-      // Listen for callback
+      // Listen for message from popup
+      const handleMessage = (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) return;
+        
+        const { success, error, provider, display_name } = event.data;
+        
+        if (success && provider === service) {
+          toast({
+            title: "Thành công",
+            description: `Đã kết nối với ${display_name || (service === 'spotify' ? 'Spotify' : 'YouTube Music')}`,
+          });
+          fetchConnections();
+        } else if (error) {
+          toast({
+            title: "Lỗi",
+            description: "Không thể kết nối. Vui lòng thử lại.",
+            variant: "destructive",
+          });
+        }
+        
+        window.removeEventListener('message', handleMessage);
+      };
+
+      window.addEventListener('message', handleMessage);
+
+      // Fallback: check if popup closed without message
       const checkPopup = setInterval(() => {
         if (popup.closed) {
           clearInterval(checkPopup);
-          fetchConnections();
-          
-          const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.get('success')) {
-            toast({
-              title: "Thành công",
-              description: `Đã kết nối với ${service === 'spotify' ? 'Spotify' : 'YouTube Music'}`,
-            });
-            // Clean URL
-            window.history.replaceState({}, '', window.location.pathname);
-          } else if (urlParams.get('error')) {
-            toast({
-              title: "Lỗi",
-              description: "Không thể kết nối. Vui lòng thử lại.",
-              variant: "destructive",
-            });
-            window.history.replaceState({}, '', window.location.pathname);
-          }
+          setTimeout(() => {
+            window.removeEventListener('message', handleMessage);
+            fetchConnections();
+          }, 500);
         }
       }, 500);
 
