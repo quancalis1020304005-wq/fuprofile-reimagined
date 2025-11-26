@@ -1,9 +1,30 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.81.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Generate code verifier and challenge for PKCE
+function generateCodeVerifier(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode(...array))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
+
+async function generateCodeChallenge(verifier: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(hash)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,76 +32,105 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const service = url.searchParams.get('service');
-    const userId = url.searchParams.get('user_id');
-    const redirectUrl = url.searchParams.get('redirect_url') || url.origin;
-
-    if (!service) {
+    const { provider } = await req.json();
+    
+    // Get authenticated user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Service parameter is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!userId) {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify user token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
       return new Response(
-        JSON.stringify({ error: 'User ID parameter is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (service === 'spotify') {
+    // Generate PKCE values
+    const codeVerifier = generateCodeVerifier();
+    const codeChallenge = await generateCodeChallenge(codeVerifier);
+    const sessionId = crypto.randomUUID();
+
+    // Store connect session
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const { error: sessionError } = await supabase
+      .from('connect_sessions')
+      .insert({
+        id: sessionId,
+        loveble_user_id: user.id,
+        provider,
+        code_challenge: codeChallenge,
+        code_verifier: codeVerifier,
+        expires_at: expiresAt.toISOString(),
+      });
+
+    if (sessionError) {
+      console.error('Session creation error:', sessionError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to create session' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Build OAuth URL based on provider
+    let authUrl: URL;
+    
+    if (provider === 'spotify') {
       const clientId = Deno.env.get('SPOTIFY_CLIENT_ID');
-      
       if (!clientId) {
-        console.error('SPOTIFY_CLIENT_ID not configured');
         return new Response(
-          JSON.stringify({ error: 'Spotify client ID not configured' }),
+          JSON.stringify({ error: 'Spotify not configured' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       const scopes = [
-        'user-read-private',
         'user-read-email',
+        'user-read-private',
         'user-library-read',
-        'user-library-modify',
         'user-read-playback-state',
         'user-modify-playback-state',
-        'streaming',
-        'playlist-read-private',
-        'playlist-modify-public',
-        'playlist-modify-private',
+        'streaming'
       ].join(' ');
 
-      const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://fwtpbkqxhsnkcavlafyz.supabase.co';
       const callbackUrl = `${supabaseUrl}/functions/v1/music-callback`;
-      const state = `${service}:${userId}:${encodeURIComponent(redirectUrl)}`;
-
-      const authUrl = new URL('https://accounts.spotify.com/authorize');
+      
+      authUrl = new URL('https://accounts.spotify.com/authorize');
       authUrl.searchParams.set('client_id', clientId);
       authUrl.searchParams.set('response_type', 'code');
       authUrl.searchParams.set('redirect_uri', callbackUrl);
       authUrl.searchParams.set('scope', scopes);
-      authUrl.searchParams.set('state', state);
+      authUrl.searchParams.set('state', sessionId);
+      authUrl.searchParams.set('code_challenge_method', 'S256');
+      authUrl.searchParams.set('code_challenge', codeChallenge);
       authUrl.searchParams.set('show_dialog', 'true');
-
-      console.log('Redirecting to Spotify auth:', authUrl.toString());
-
-      return Response.redirect(authUrl.toString(), 302);
-    }
-
-    if (service === 'youtube_music') {
+    } else if (provider === 'youtube') {
       return new Response(
-        JSON.stringify({ error: 'YouTube Music OAuth coming soon' }),
+        JSON.stringify({ error: 'YouTube Music coming soon' }),
         { status: 501, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } else {
+      return new Response(
+        JSON.stringify({ error: 'Invalid provider' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     return new Response(
-      JSON.stringify({ error: 'Invalid service' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ auth_url: authUrl.toString() }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
