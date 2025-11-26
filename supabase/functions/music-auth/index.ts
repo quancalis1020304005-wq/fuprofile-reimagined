@@ -32,7 +32,17 @@ serve(async (req) => {
   }
 
   try {
-    const { provider } = await req.json();
+    const body = await req.json();
+    const provider = body.provider;
+    
+    console.log('music-auth called with provider:', provider);
+    
+    if (!provider) {
+      return new Response(
+        JSON.stringify({ error: 'Provider is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     // Get authenticated user
     const authHeader = req.headers.get('Authorization');
@@ -116,14 +126,15 @@ serve(async (req) => {
       authUrl.searchParams.set('code_challenge_method', 'S256');
       authUrl.searchParams.set('code_challenge', codeChallenge);
       authUrl.searchParams.set('show_dialog', 'true');
-    } else if (provider === 'youtube') {
+    } else if (provider === 'youtube_music') {
       return new Response(
         JSON.stringify({ error: 'YouTube Music coming soon' }),
         { status: 501, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else {
+      console.error('Invalid provider received:', provider);
       return new Response(
-        JSON.stringify({ error: 'Invalid provider' }),
+        JSON.stringify({ error: `Invalid provider: ${provider}` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
